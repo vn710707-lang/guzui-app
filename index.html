@@ -21,6 +21,8 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .top-stats{display:flex;gap:8px;}
 .stat{display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:4px 8px;}
 .stat span{font-size:12px;color:#ffd700;}
+.date-bar{position:relative;z-index:10;background:rgba(13,8,32,0.8);padding:5px 12px;text-align:center;border-bottom:1px solid rgba(212,175,55,0.15);}
+.date-bar span{font-size:11px;color:#d4af37;letter-spacing:1px;}
 .hero-section{position:relative;z-index:5;width:100%;height:280px;overflow:hidden;}
 .hero-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,#0d0820 0%,#1a0d3a 40%,#0d1a3a 100%);}
 .character-img{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:260px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(212,175,55,0.4));animation:float 4s ease-in-out infinite;}
@@ -40,6 +42,7 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .menu-card h3{font-size:13px;color:#d4af37;margin-bottom:2px;}
 .menu-card p{font-size:10px;color:#7a6a9a;}
 .menu-card.hot::after{content:'熱門';position:absolute;top:6px;right:6px;background:linear-gradient(135deg,#ff4444,#ff8800);border-radius:8px;padding:1px 6px;font-size:9px;color:#fff;}
+.menu-card.new::after{content:'新';position:absolute;top:6px;right:6px;background:linear-gradient(135deg,#44aaff,#0066cc);border-radius:8px;padding:1px 6px;font-size:9px;color:#fff;}
 .zodiac-section{position:relative;z-index:10;padding:8px 12px;}
 .section-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .section-hd::before,.section-hd::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.4),transparent);}
@@ -60,7 +63,7 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .zodiac-mini{display:flex;overflow-x:auto;gap:8px;padding:10px 12px;scrollbar-width:none;}
 .zodiac-mini::-webkit-scrollbar{display:none;}
 .zm-item{flex-shrink:0;background:rgba(26,13,58,0.8);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:5px 12px;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
-.zm-item.sel{background:rgba(212,175,54,0.2);border-color:#d4af37;}
+.zm-item.sel{background:rgba(212,175,55,0.2);border-color:#d4af37;}
 .zm-item span{font-size:12px;color:#d4af37;}
 .quick-row{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 8px;}
 .q-btn{background:rgba(26,13,58,0.8);border:1px solid rgba(212,175,55,0.25);border-radius:15px;padding:5px 11px;font-size:11px;color:#c4a040;cursor:pointer;white-space:nowrap;}
@@ -88,9 +91,18 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .input-row input:focus{border-color:rgba(212,175,55,0.6);}
 .send-btn{width:42px;height:42px;background:linear-gradient(135deg,#c4a040,#8a6d2a);border:none;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .send-btn:active{transform:scale(0.92);}
+.course-section{position:relative;z-index:10;padding:8px 12px;}
+.course-card{background:linear-gradient(135deg,rgba(26,13,58,0.95),rgba(13,8,32,0.98));border:1px solid rgba(100,150,255,0.3);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.course-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(100,150,255,0.5),transparent);}
+.course-card:active{transform:scale(0.98);}
+.course-card .c-tag{display:inline-block;background:rgba(100,150,255,0.2);border:1px solid rgba(100,150,255,0.4);border-radius:10px;padding:2px 8px;font-size:10px;color:#88aaff;margin-bottom:6px;}
+.course-card h3{font-size:14px;color:#d4af37;margin-bottom:4px;}
+.course-card p{font-size:11px;color:#9b8bbf;line-height:1.5;}
+.course-card .c-price{margin-top:8px;font-size:13px;color:#ffd700;}
+.course-card .c-free{color:#44cc88;font-size:13px;}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,5,25,0.97);border-top:1px solid rgba(212,175,55,0.25);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
 .nav-btn{flex:1;padding:8px 4px;text-align:center;cursor:pointer;}
-.nav-btn .ni{font-size:20px;margin-bottom:2px;}
+.nav-btn .ni{font-size:18px;margin-bottom:2px;}
 .nav-btn .nl{font-size:9px;color:#6a5a8a;}
 .nav-btn.on .nl{color:#d4af37;}
 </style>
@@ -111,7 +123,7 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
     </div>
     <div class="top-stats">
       <div class="stat"><span>⚡ 120/120</span></div>
-      <div class="stat"><span>💰 9,999</span></div>
+      <div class="stat"><span id="top-date">載入中...</span></div>
     </div>
   </div>
 
@@ -119,7 +131,7 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
     <div class="hero-bg"></div>
     <div class="hero-title">
       <h1>✨ 古錐星命閣 ✨</h1>
-      <p>九天玄女為您指引命途</p>
+      <p id="hero-date">九天玄女為您指引命途</p>
     </div>
     <img src="character.png" class="character-img" alt="九天玄女">
     <span class="sparkle" style="top:20%;left:10%;animation-delay:0s">✦</span>
@@ -157,6 +169,38 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   <div class="zodiac-section">
     <div class="section-hd"><span>✦ 選擇星座 ✦</span></div>
     <div class="zodiac-scroll" id="home-zodiac"></div>
+  </div>
+
+  <div class="course-section">
+    <div class="section-hd"><span>📚 命理課程 ✦</span></div>
+
+    <div class="course-card">
+      <div class="c-tag">免費入門</div>
+      <h3>🌟 星座入門基礎課</h3>
+      <p>了解十二星座的基本特質、守護星與元素屬性，適合命理初學者。</p>
+      <div class="c-free">✅ 免費觀看</div>
+    </div>
+
+    <div class="course-card">
+      <div class="c-tag">人氣課程</div>
+      <h3>🔮 塔羅牌占卜入門</h3>
+      <p>學習塔羅牌的基本牌義、牌陣布局與解牌技巧，開啟您的占卜之旅。</p>
+      <div class="c-free">✅ 免費觀看</div>
+    </div>
+
+    <div class="course-card">
+      <div class="c-tag">進階課程</div>
+      <h3>📅 八字命理深度解析</h3>
+      <p>深入學習四柱八字、五行生剋、格局判斷，掌握命理推算核心技術。</p>
+      <div class="c-free">✅ 免費觀看</div>
+    </div>
+
+    <div class="course-card">
+      <div class="c-tag">高級課程</div>
+      <h3>🌙 紫微斗數完整課程</h3>
+      <p>系統學習紫微斗數命盤排列、主星解析、四化飛星等完整知識體系。</p>
+      <div class="c-free">✅ 免費觀看</div>
+    </div>
   </div>
 </div>
 
@@ -244,12 +288,33 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
+<div class="page" id="pg-course">
+  <div class="page-header">
+    <div class="back-btn" onclick="openPage('pg-home')">←</div>
+    <h2>📚 命理課程</h2>
+    <div class="page-header-char"><img src="character.png" alt=""></div>
+  </div>
+  <div class="quick-row">
+    <span class="q-btn" onclick="qSend('course','介紹星座入門課程內容')">星座入門</span>
+    <span class="q-btn" onclick="qSend('course','介紹塔羅牌課程內容')">塔羅課程</span>
+    <span class="q-btn" onclick="qSend('course','介紹八字課程內容')">八字課程</span>
+    <span class="q-btn" onclick="qSend('course','介紹紫微斗數課程內容')">紫微課程</span>
+  </div>
+  <div class="chat-wrap">
+    <div class="chat-box" id="course-chat"></div>
+    <div class="input-row">
+      <input id="course-inp" type="text" placeholder="詢問課程相關問題...">
+      <button class="send-btn" onclick="doSend('course')">➤</button>
+    </div>
+  </div>
+</div>
+
 <div class="bottom-nav">
   <div class="nav-btn on" onclick="openPage('pg-home',this)"><div class="ni">🏠</div><div class="nl">首頁</div></div>
   <div class="nav-btn" onclick="openPage('pg-zodiac',this)"><div class="ni">⭐</div><div class="nl">星座</div></div>
   <div class="nav-btn" onclick="openPage('pg-tarot',this)"><div class="ni">🃏</div><div class="nl">塔羅</div></div>
   <div class="nav-btn" onclick="openPage('pg-bazi',this)"><div class="ni">📅</div><div class="nl">八字</div></div>
-  <div class="nav-btn" onclick="openPage('pg-ziwei',this)"><div class="ni">🌟</div><div class="nl">紫微</div></div>
+  <div class="nav-btn" onclick="openPage('pg-course',this)"><div class="ni">📚</div><div class="nl">課程</div></div>
 </div>
 
 <script>
@@ -263,6 +328,26 @@ const ZS=[
   {n:'水瓶',s:'♒',d:'1/20-2/18'},{n:'雙魚',s:'♓',d:'2/19-3/20'}
 ];
 
+const WEEKDAYS=['日','一','二','三','四','五','六'];
+
+function getTodayStr(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const m=now.getMonth()+1;
+  const d=now.getDate();
+  const w=WEEKDAYS[now.getDay()];
+  return `${y}年${m}月${d}日 星期${w}`;
+}
+
+function getDateContext(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const m=now.getMonth()+1;
+  const d=now.getDate();
+  const w=WEEKDAYS[now.getDay()];
+  return `【今天日期：${y}年${m}月${d}日，星期${w}，2026年丙午年】`;
+}
+
 const SP=`妳是「古錐星命閣」的神秘命理師「九天玄女」，精通西洋占星、塔羅牌、中國八字命理、紫微斗數。
 
 【絕對禁令】
@@ -274,6 +359,9 @@ const SP=`妳是「古錐星命閣」的神秘命理師「九天玄女」，精�
 【說話風格】
 自稱「九天玄女」，稱用戶為「親愛的有緣人」。說話親切溫暖像朋友，帶有神秘感。多用「哦」「呢」「喔」「嗯」等語氣詞。適時加入✨🌙🔮⭐💫🌟符號。開頭引用神秘天象詩句，結尾給溫暖祝福。
 
+【課程介紹風格】
+介紹課程時，親切說明課程內容、學習收穫、適合對象，並鼓勵有緣人學習命理知識，所有課程目前完全免費。
+
 【星座運勢格式】
 🌟 守護星現況
 💕 愛情宮（感情狀態、建議、桃花）
@@ -282,12 +370,10 @@ const SP=`妳是「古錐星命閣」的神秘命理師「九天玄女」，精�
 💪 健康宮（注意部位、養生建議）
 ⭐ 幸運色／🔢 幸運數字／🕐 吉時方位
 📆 本週星象重點
-💫 命理箴言與祝福
-
-現在是2026年丙午年，全程繁體中文漢字，內容詳細專業。`;
+💫 命理箴言與祝福`;
 
 let selZ='';
-let hist={zodiac:[],tarot:[],bazi:[],ziwei:[]};
+let hist={zodiac:[],tarot:[],bazi:[],ziwei:[],course:[]};
 
 function cleanReply(txt){
   txt=txt.replace(/玄女我/g,'九天玄女');
@@ -304,6 +390,14 @@ function createStars(){
     s.style.cssText=`width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${Math.random()*3+2}s;`;
     c.appendChild(s);
   }
+}
+
+function initDate(){
+  const str=getTodayStr();
+  const el1=document.getElementById('top-date');
+  const el2=document.getElementById('hero-date');
+  if(el1) el1.textContent='📅 '+str;
+  if(el2) el2.textContent=str;
 }
 
 function renderZS(){
@@ -352,7 +446,8 @@ function showTyping(cid){
 function rmTyping(cid){const t=document.getElementById(cid+'-typing');if(t)t.remove();}
 
 async function callAI(msg,history){
-  const messages=[{role:'system',content:SP},...history.slice(-6),{role:'user',content:msg}];
+  const dateCtx=getDateContext();
+  const messages=[{role:'system',content:SP+'\n\n'+dateCtx},...history.slice(-6),{role:'user',content:msg}];
   const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
     method:'POST',
     headers:{'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
@@ -401,11 +496,13 @@ document.querySelectorAll('.input-row input').forEach(inp=>{
 
 createStars();
 renderZS();
+initDate();
 
 addMsg('zodiac','ai','「星月交輝，命途閃耀」✨<br><br>親愛的有緣人，歡迎來到古錐星命閣！😊<br>請選擇您的星座，九天玄女為您解析今日運勢 🌙');
 addMsg('tarot','ai','「牌影搖曳，天機乍現」🔮<br><br>親愛的有緣人，靜下心來喔～<br>九天玄女將為您抽出命運之牌，請說出您的問題 ✨');
 addMsg('bazi','ai','「八字藏天機，四柱定乾坤」🌟<br><br>親愛的有緣人，請告訴九天玄女您的出生年月日時喔！<br>例如：「一九九零年五月十五日上午八點」😊');
 addMsg('ziwei','ai','「紫微星耀，命運昭昭」✨<br><br>親愛的有緣人，請告訴九天玄女您的出生年月日時呢～<br>九天玄女將為您排出完整紫微命盤 🌙');
+addMsg('course','ai','「學問無涯，命理博大」📚<br><br>親愛的有緣人，歡迎來到古錐星命閣課程區！😊<br>九天玄女為您準備了星座、塔羅、八字、紫微斗數四大課程喔～<br>目前所有課程完全免費，請問您想學習哪個方向呢？✨');
 </script>
 </body>
 </html>
