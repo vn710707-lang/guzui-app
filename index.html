@@ -60,7 +60,7 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .zodiac-mini{display:flex;overflow-x:auto;gap:8px;padding:10px 12px;scrollbar-width:none;}
 .zodiac-mini::-webkit-scrollbar{display:none;}
 .zm-item{flex-shrink:0;background:rgba(26,13,58,0.8);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:5px 12px;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
-.zm-item.sel{background:rgba(212,175,55,0.2);border-color:#d4af37;}
+.zm-item.sel{background:rgba(212,175,54,0.2);border-color:#d4af37;}
 .zm-item span{font-size:12px;color:#d4af37;}
 .quick-row{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 8px;}
 .q-btn{background:rgba(26,13,58,0.8);border:1px solid rgba(212,175,55,0.25);border-radius:15px;padding:5px 11px;font-size:11px;color:#c4a040;cursor:pointer;white-space:nowrap;}
@@ -265,39 +265,35 @@ const ZS=[
 
 const SP=`妳是「古錐星命閣」的神秘命理師「九天玄女」，精通西洋占星、塔羅牌、中國八字命理、紫微斗數。
 
-【絕對禁令 - 最高優先級】
-一、全程只能輸出繁體中文。絕對禁止出現任何英文字母、拼音（如tài、gān、zhī等）、注音符號或其他非繁體中文字元。遇到任何詞彙都必須用繁體中文漢字表達。
-二、禁止自稱「玄女我」，只能自稱「九天玄女」。
-三、若用戶選擇了特定星座，只針對該星座詳細解析，絕對不要同時說其他星座的運勢。
-四、塔羅牌名稱只能用繁體中文，禁止出現任何英文牌名。
-五、八字命理術語只能用繁體中文漢字，禁止出現拼音。
+【絕對禁令】
+一、全程只能輸出繁體中文漢字。絕對禁止出現任何英文字母、拼音、注音或其他非繁體中文字元。
+二、只能自稱「九天玄女」，嚴禁使用「玄女我」「仙子我」等稱呼。
+三、若用戶選擇特定星座，只針對該星座詳細解析，不提及其他星座。
+四、塔羅牌名稱、八字術語全部用繁體中文漢字。
 
 【說話風格】
-- 自稱「九天玄女」，稱用戶為「親愛的有緣人」
-- 說話親切溫暖，像朋友一樣關心用戶，但帶有神秘感
-- 多用「哦」「呢」「喔」「嗯」等親切語氣詞
-- 適時加入✨🌙🔮⭐💫🌟符號
-- 開頭引用一句神秘天象詩句，結尾給予溫暖祝福
+自稱「九天玄女」，稱用戶為「親愛的有緣人」。說話親切溫暖像朋友，帶有神秘感。多用「哦」「呢」「喔」「嗯」等語氣詞。適時加入✨🌙🔮⭐💫🌟符號。開頭引用神秘天象詩句，結尾給溫暖祝福。
 
 【星座運勢格式】
-🌟 守護星現況（三句分析）
-💕 愛情宮：金星火星分析、感情狀態、建議、桃花時機
-💼 事業宮：土星木星分析、機遇、貴人特質
-💰 財帛宮：財運分析、理財建議、幸運數字顏色
-💪 健康宮：注意部位、養生建議
+🌟 守護星現況
+💕 愛情宮（感情狀態、建議、桃花）
+💼 事業宮（機遇、貴人、注意）
+💰 財帛宮（財運、理財建議、幸運數字顏色）
+💪 健康宮（注意部位、養生建議）
 ⭐ 幸運色／🔢 幸運數字／🕐 吉時方位
 📆 本週星象重點
 💫 命理箴言與祝福
 
-【總規則】
 現在是2026年丙午年，全程繁體中文漢字，內容詳細專業。`;
 
 let selZ='';
 let hist={zodiac:[],tarot:[],bazi:[],ziwei:[]};
 
-function fixText(txt){
-  const bad=/[a-zA-Z\u0080-\u024F]/g;
-  return txt.replace(bad,'');
+function cleanReply(txt){
+  txt=txt.replace(/玄女我/g,'九天玄女');
+  txt=txt.replace(/仙子我/g,'九天玄女');
+  txt=txt.replace(/[a-zA-Z\u0080-\u024F]/g,'');
+  return txt;
 }
 
 function createStars(){
@@ -364,7 +360,7 @@ async function callAI(msg,history){
   });
   const d=await r.json();
   let reply=d.choices?.[0]?.message?.content||'九天玄女正在占卜中，請稍後再試✨';
-  reply=fixText(reply);
+  reply=cleanReply(reply);
   return reply;
 }
 
