@@ -7,58 +7,48 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;min-height:100vh;overflow-x:hidden;max-width:480px;margin:0 auto;}
-
-/* 粒子背景 */
 .bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
-
-/* 頂部狀態欄 */
 .hud{position:relative;z-index:20;background:linear-gradient(180deg,rgba(5,2,15,0.98),rgba(10,5,30,0.95));padding:6px 10px;border-bottom:1px solid rgba(212,175,55,0.4);display:flex;align-items:center;gap:8px;}
-.hud-avatar{width:46px;height:46px;border-radius:50%;border:2px solid #d4af37;overflow:hidden;flex-shrink:0;position:relative;}
+.hud-avatar{width:46px;height:46px;border-radius:50%;border:2px solid #d4af37;overflow:hidden;flex-shrink:0;}
 .hud-avatar img{width:100%;height:100%;object-fit:cover;object-position:top center;}
-.hud-avatar::after{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 8px rgba(212,175,55,0.4);}
 .hud-info{flex:1;}
 .hud-name{font-size:13px;color:#d4af37;font-weight:bold;letter-spacing:1px;}
 .hud-title{font-size:10px;color:#9b8bbf;margin-top:1px;}
 .hud-lv{display:flex;align-items:center;gap:4px;margin-top:3px;}
 .hud-lv-bar{flex:1;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden;}
-.hud-lv-fill{height:100%;width:85%;background:linear-gradient(90deg,#d4af37,#ffd700);border-radius:2px;animation:lvPulse 2s ease-in-out infinite;}
-@keyframes lvPulse{0%,100%{opacity:1;}50%{opacity:0.7;}}
+.hud-lv-fill{height:100%;width:85%;background:linear-gradient(90deg,#d4af37,#ffd700);border-radius:2px;}
 .hud-lv-text{font-size:9px;color:#d4af37;white-space:nowrap;}
 .hud-stats{display:flex;flex-direction:column;gap:3px;align-items:flex-end;}
 .hud-stat{display:flex;align-items:center;gap:3px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.25);border-radius:12px;padding:2px 7px;}
 .hud-stat span{font-size:10px;color:#ffd700;}
-
-/* 日期欄 */
 .date-hud{position:relative;z-index:20;background:rgba(5,2,15,0.9);padding:4px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(212,175,55,0.15);}
 .date-hud .d-left{font-size:11px;color:#d4af37;}
 .date-hud .d-right{font-size:10px;color:#9b8bbf;}
-
-/* 頁面系統 */
 .page{display:none;padding-bottom:70px;position:relative;z-index:10;}
 .page.active{display:block;}
 
-/* 主角展示 */
-.char-stage{position:relative;height:260px;overflow:hidden;background:linear-gradient(180deg,#08051a 0%,#12083a 50%,#08051a 100%);}
-.char-stage-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(100,50,200,0.3),transparent 70%);}
-.char-stage-ground{position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(180deg,transparent,rgba(212,175,55,0.05));}
-.char-img{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:240px;object-fit:contain;filter:drop-shadow(0 0 15px rgba(212,175,55,0.3));animation:charFloat 4s ease-in-out infinite;}
-@keyframes charFloat{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(-8px);}}
-.char-halo{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:100px;height:20px;background:radial-gradient(ellipse,rgba(212,175,55,0.3),transparent);border-radius:50%;animation:haloGlow 2s ease-in-out infinite;}
-@keyframes haloGlow{0%,100%{opacity:0.5;}50%{opacity:1;}}
-.stage-title{position:absolute;top:12px;left:0;right:0;text-align:center;}
-.stage-title h1{font-size:18px;color:#d4af37;letter-spacing:4px;text-shadow:0 0 15px rgba(212,175,55,0.6);}
-.stage-title p{font-size:10px;color:#9b8bbf;margin-top:2px;}
-.stage-sparks{position:absolute;inset:0;pointer-events:none;}
-.spark{position:absolute;width:3px;height:3px;background:#d4af37;border-radius:50%;animation:sparkFly 4s infinite;}
-@keyframes sparkFly{0%{opacity:0;transform:translateY(0) scale(0);}20%{opacity:1;transform:translateY(-20px) scale(1);}100%{opacity:0;transform:translateY(-80px) scale(0);}}
+/* 主角展示區 - 左右分割 */
+.char-stage{position:relative;height:220px;overflow:hidden;background:linear-gradient(180deg,#08051a 0%,#12083a 50%,#08051a 100%);display:flex;align-items:center;}
+.char-stage-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 80%,rgba(100,50,200,0.25),transparent 60%);}
+.char-left{position:relative;z-index:2;width:48%;display:flex;justify-content:center;align-items:flex-end;height:100%;}
+.char-img{height:210px;object-fit:contain;filter:drop-shadow(0 0 12px rgba(212,175,55,0.35));animation:charFloat 4s ease-in-out infinite;transform-origin:bottom center;}
+@keyframes charFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.char-right{position:relative;z-index:2;width:52%;padding:15px 12px 15px 8px;display:flex;flex-direction:column;justify-content:center;}
+.stage-game-title{font-size:11px;color:#9b8bbf;letter-spacing:3px;margin-bottom:6px;}
+.stage-main-title{font-size:22px;color:#d4af37;letter-spacing:2px;font-weight:bold;text-shadow:0 0 15px rgba(212,175,55,0.6);line-height:1.2;}
+.stage-sub{font-size:11px;color:#9b8bbf;margin-top:6px;line-height:1.5;}
+.stage-badge{display:inline-block;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:3px 10px;font-size:10px;color:#d4af37;margin-top:8px;}
+.char-halo{position:absolute;bottom:0;left:24%;width:80px;height:15px;background:radial-gradient(ellipse,rgba(212,175,55,0.25),transparent);border-radius:50%;animation:haloGlow 2s ease-in-out infinite;}
+@keyframes haloGlow{0%,100%{opacity:0.4;}50%{opacity:1;}}
+.stage-sparks{position:absolute;inset:0;pointer-events:none;z-index:1;}
+.spark{position:absolute;width:2px;height:2px;background:#d4af37;border-radius:50%;animation:sparkFly 4s infinite;}
+@keyframes sparkFly{0%{opacity:0;transform:translateY(0) scale(0);}20%{opacity:1;transform:translateY(-15px) scale(1);}100%{opacity:0;transform:translateY(-60px) scale(0);}}
 
-/* 功能選單 */
 .func-menu{padding:10px 10px 6px;}
 .func-title{text-align:center;font-size:11px;color:#6a5a9a;letter-spacing:2px;margin-bottom:8px;}
 .func-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
 .func-btn{background:linear-gradient(135deg,rgba(20,10,50,0.95),rgba(10,5,30,0.98));border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:12px 10px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;text-align:left;}
 .func-btn::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.4),transparent);}
-.func-btn::after{content:'';position:absolute;bottom:0;right:0;width:40px;height:40px;background:radial-gradient(circle,rgba(212,175,55,0.05),transparent);border-radius:50%;}
 .func-btn:active{transform:scale(0.97);border-color:rgba(212,175,55,0.5);}
 .func-btn.featured{border-color:rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(40,20,80,0.95),rgba(20,10,50,0.98));}
 .func-btn .fb-icon{font-size:24px;margin-bottom:6px;display:block;}
@@ -69,7 +59,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .badge-new{background:linear-gradient(135deg,#44aaff,#0055cc);color:#fff;}
 .badge-free{background:linear-gradient(135deg,#44cc66,#228844);color:#fff;}
 
-/* 今日宜忌 */
 .yiji-section{padding:0 10px 8px;}
 .yiji-box{background:linear-gradient(135deg,rgba(20,10,50,0.9),rgba(10,5,30,0.95));border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:10px 12px;}
 .yiji-title{font-size:11px;color:#d4af37;letter-spacing:1px;margin-bottom:8px;text-align:center;}
@@ -81,7 +70,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .yiji-items{display:flex;flex-wrap:wrap;gap:3px;}
 .yiji-item{font-size:10px;color:#ccc;background:rgba(255,255,255,0.05);border-radius:4px;padding:2px 5px;}
 
-/* 星座快選 */
 .zodiac-quick{padding:0 10px 8px;}
 .sec-hd{display:flex;align-items:center;gap:6px;margin-bottom:7px;}
 .sec-hd::before,.sec-hd::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.3),transparent);}
@@ -93,17 +81,15 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .zd-item .zn{font-size:10px;color:#d4af37;margin-top:1px;}
 .zd-item .zd{font-size:8px;color:#5a4a7a;margin-top:1px;}
 
-/* 每日獎勵 */
 .daily-section{padding:0 10px 8px;}
-.daily-box{background:linear-gradient(135deg,rgba(30,15,60,0.95),rgba(15,8,40,0.98));border:2px solid rgba(212,175,55,0.3);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s;}
+.daily-box{background:linear-gradient(135deg,rgba(30,15,60,0.95),rgba(15,8,40,0.98));border:2px solid rgba(212,175,55,0.3);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;}
 .daily-box:active{transform:scale(0.98);}
 .daily-icon{font-size:28px;animation:giftBounce 2s ease-in-out infinite;}
-@keyframes giftBounce{0%,100%{transform:translateY(0) rotate(0deg);}25%{transform:translateY(-5px) rotate(-5deg);}75%{transform:translateY(-3px) rotate(5deg);}}
+@keyframes giftBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
 .daily-info h3{font-size:13px;color:#d4af37;}
 .daily-info p{font-size:10px;color:#9b8bbf;margin-top:2px;}
-.daily-btn{margin-left:auto;background:linear-gradient(135deg,#d4af37,#8a6d2a);border:none;border-radius:20px;padding:6px 14px;color:#1a0d3a;font-size:11px;font-weight:bold;cursor:pointer;}
+.daily-btn{margin-left:auto;background:linear-gradient(135deg,#d4af37,#8a6d2a);border:none;border-radius:20px;padding:6px 14px;color:#1a0d3a;font-size:11px;font-weight:bold;cursor:pointer;flex-shrink:0;}
 
-/* 課程卡片 */
 .course-section{padding:0 10px 8px;}
 .course-list{display:flex;flex-direction:column;gap:6px;}
 .course-item{background:linear-gradient(135deg,rgba(15,8,40,0.95),rgba(8,5,20,0.98));border:1px solid rgba(100,120,255,0.2);border-radius:12px;padding:10px 12px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:10px;}
@@ -115,21 +101,18 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .course-item .ci-tag{font-size:9px;background:rgba(50,200,100,0.15);border:1px solid rgba(50,200,100,0.3);border-radius:8px;padding:1px 6px;color:#44cc88;flex-shrink:0;}
 .course-item .ci-arrow{color:#d4af37;font-size:14px;flex-shrink:0;}
 
-/* 頁面標題欄 */
 .pg-hd{position:relative;z-index:20;background:linear-gradient(180deg,rgba(5,2,15,0.98),rgba(10,5,30,0.95));padding:10px 12px;border-bottom:1px solid rgba(212,175,55,0.2);display:flex;align-items:center;gap:8px;}
 .pg-back{width:32px;height:32px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;}
 .pg-hd h2{font-size:16px;color:#d4af37;flex:1;}
 .pg-avatar{width:34px;height:34px;border-radius:50%;border:1px solid #d4af37;overflow:hidden;}
 .pg-avatar img{width:100%;height:100%;object-fit:cover;object-position:top;}
 
-/* 星座橫向滾動 */
 .zd-scroll{display:flex;overflow-x:auto;gap:6px;padding:8px 10px;scrollbar-width:none;}
 .zd-scroll::-webkit-scrollbar{display:none;}
 .zd-chip{flex-shrink:0;background:rgba(20,10,50,0.8);border:1px solid rgba(212,175,55,0.15);border-radius:20px;padding:5px 10px;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
 .zd-chip.on{background:rgba(212,175,55,0.15);border-color:#d4af37;}
 .zd-chip span{font-size:11px;color:#d4af37;}
 
-/* 運勢星級 */
 .fortune-panel{margin:0 10px 8px;background:linear-gradient(135deg,rgba(15,8,40,0.95),rgba(8,5,20,0.98));border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:10px 12px;}
 .fortune-panel .fp-title{font-size:11px;color:#9b8bbf;text-align:center;margin-bottom:8px;}
 .fortune-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
@@ -139,12 +122,10 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .fi-star{font-size:13px;color:#d4af37;}
 .fi-star.off{color:#2a1a4a;}
 
-/* 快速按鈕 */
 .quick-btns{display:flex;gap:5px;flex-wrap:wrap;padding:0 10px 6px;}
 .qb{background:rgba(20,10,50,0.8);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:5px 10px;font-size:11px;color:#c4a040;cursor:pointer;white-space:nowrap;}
 .qb:active{background:rgba(212,175,55,0.12);}
 
-/* 對話區 */
 .chat-area{padding:0 10px;}
 .chat-box{background:rgba(5,2,15,0.95);border:1px solid rgba(212,175,55,0.15);border-radius:12px;padding:10px;min-height:220px;max-height:320px;overflow-y:auto;margin-bottom:8px;}
 .chat-box::-webkit-scrollbar{width:2px;}
@@ -163,7 +144,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .typing span:nth-child(3){animation-delay:0.4s;}
 @keyframes tp{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
 
-/* 輸入欄 */
 .input-bar{display:flex;gap:6px;padding:0 10px;}
 .input-bar input{flex:1;background:rgba(20,10,50,0.9);border:1px solid rgba(212,175,55,0.25);border-radius:22px;padding:9px 14px;color:#fff;font-size:12px;outline:none;}
 .input-bar input::placeholder{color:#4a3a6a;}
@@ -171,7 +151,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .send-b{width:40px;height:40px;background:linear-gradient(135deg,#d4af37,#8a6d2a);border:none;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .send-b:active{transform:scale(0.9);}
 
-/* 底部導航 */
 .bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(5,2,15,0.98);border-top:1px solid rgba(212,175,55,0.2);display:flex;z-index:100;}
 .nb{flex:1;padding:7px 3px;text-align:center;cursor:pointer;position:relative;}
 .nb .ni{font-size:19px;margin-bottom:1px;}
@@ -179,10 +158,9 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .nb.on .nl{color:#d4af37;}
 .nb.on::before{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:linear-gradient(90deg,transparent,#d4af37,transparent);}
 
-/* 彈窗 */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:none;align-items:center;justify-content:center;}
 .modal.show{display:flex;}
-.modal-box{background:linear-gradient(135deg,#12083a,#08051a);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:20px;width:300px;text-align:center;animation:modalIn 0.3s ease;}
+.modal-box{background:linear-gradient(135deg,#12083a,#08051a);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:20px;width:280px;text-align:center;animation:modalIn 0.3s ease;}
 @keyframes modalIn{from{opacity:0;transform:scale(0.8);}to{opacity:1;transform:scale(1);}}
 .modal-box h3{font-size:16px;color:#d4af37;margin-bottom:8px;}
 .modal-box p{font-size:12px;color:#ccc;line-height:1.6;margin-bottom:15px;}
@@ -194,7 +172,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 
 <canvas class="bg-canvas" id="bgCanvas"></canvas>
 
-<!-- 每日獎勵彈窗 -->
 <div class="modal" id="modal-daily">
   <div class="modal-box">
     <h3>🎁 每日簽到獎勵</h3>
@@ -204,7 +181,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 首頁 -->
 <div class="page active" id="pg-home">
   <div class="hud">
     <div class="hud-avatar"><img src="character.png" alt="九天玄女"></div>
@@ -230,16 +206,19 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 
   <div class="char-stage">
     <div class="char-stage-bg"></div>
-    <div class="stage-title">
-      <h1>✨ 古錐星命閣 ✨</h1>
-      <p>九天玄女為您指引命途</p>
+    <div class="char-left">
+      <div class="char-halo"></div>
+      <img src="character.png" class="char-img" alt="九天玄女">
     </div>
-    <div class="char-halo"></div>
-    <img src="character.png" class="char-img" alt="九天玄女">
+    <div class="char-right">
+      <div class="stage-game-title">✦ 命理神殿 ✦</div>
+      <div class="stage-main-title">古錐<br>星命閣</div>
+      <div class="stage-sub">九天玄女<br>為您指引命途</div>
+      <div class="stage-badge">🌟 全功能免費開放中</div>
+    </div>
     <div class="stage-sparks" id="sparks"></div>
   </div>
 
-  <!-- 每日獎勵 -->
   <div class="daily-section">
     <div class="daily-box" onclick="showDaily()">
       <div class="daily-icon">🎁</div>
@@ -251,7 +230,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
     </div>
   </div>
 
-  <!-- 功能選單 -->
   <div class="func-menu">
     <div class="func-title">─── 選擇服務 ───</div>
     <div class="func-grid">
@@ -281,7 +259,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
     </div>
   </div>
 
-  <!-- 今日宜忌 -->
   <div class="yiji-section">
     <div class="yiji-box">
       <div class="yiji-title">✦ 今日宜忌 ✦</div>
@@ -307,13 +284,11 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
     </div>
   </div>
 
-  <!-- 星座選擇 -->
   <div class="zodiac-quick">
     <div class="sec-hd"><span>✦ 選擇星座 ✦</span></div>
     <div class="zodiac-grid" id="home-zd"></div>
   </div>
 
-  <!-- 課程 -->
   <div class="course-section">
     <div class="sec-hd"><span>📚 命理課程 ✦</span></div>
     <div class="course-list">
@@ -345,7 +320,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 星座頁 -->
 <div class="page" id="pg-zodiac">
   <div class="pg-hd">
     <div class="pg-back" onclick="goPage('pg-home')">←</div>
@@ -353,7 +327,7 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
     <div class="pg-avatar"><img src="character.png"></div>
   </div>
   <div class="zd-scroll" id="zd-scroll"></div>
-  <div class="fortune-panel" id="fortune-panel">
+  <div class="fortune-panel">
     <div class="fp-title">✦ 今日運勢指數 ✦</div>
     <div class="fortune-grid">
       <div class="fortune-item"><div class="fi-label">💕 愛情運</div><div class="fi-stars" id="fs-love"></div></div>
@@ -378,7 +352,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 塔羅頁 -->
 <div class="page" id="pg-tarot">
   <div class="pg-hd">
     <div class="pg-back" onclick="goPage('pg-home')">←</div>
@@ -400,7 +373,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 八字頁 -->
 <div class="page" id="pg-bazi">
   <div class="pg-hd">
     <div class="pg-back" onclick="goPage('pg-home')">←</div>
@@ -421,7 +393,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 紫微頁 -->
 <div class="page" id="pg-ziwei">
   <div class="pg-hd">
     <div class="pg-back" onclick="goPage('pg-home')">←</div>
@@ -442,7 +413,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 課程頁 -->
 <div class="page" id="pg-course">
   <div class="pg-hd">
     <div class="pg-back" onclick="goPage('pg-home')">←</div>
@@ -464,7 +434,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 底部導航 -->
 <div class="bnav">
   <div class="nb on" onclick="goPage('pg-home',this)"><div class="ni">🏠</div><div class="nl">首頁</div></div>
   <div class="nb" onclick="goPage('pg-zodiac',this)"><div class="ni">⭐</div><div class="nl">星座</div></div>
@@ -501,7 +470,6 @@ function getDateCtx(){
   const n=new Date();
   return `【今天：${n.getFullYear()}年${n.getMonth()+1}月${n.getDate()}日，星期${WD[n.getDay()]}，丙午年】`;
 }
-
 function cleanTxt(t){
   t=t.replace(/玄女我/g,'九天玄女');
   t=t.replace(/仙子我/g,'九天玄女');
@@ -515,21 +483,11 @@ function initBG(){
   cv.width=window.innerWidth;
   cv.height=window.innerHeight;
   const stars=[];
-  for(let i=0;i<120;i++){
-    stars.push({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*1.5+0.3,o:Math.random(),s:Math.random()*0.02+0.005});
-  }
+  for(let i=0;i<120;i++) stars.push({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*1.5+0.3,o:Math.random(),s:Math.random()*0.02+0.005});
   function draw(){
     ctx.clearRect(0,0,cv.width,cv.height);
-    ctx.fillStyle='#08051a';
-    ctx.fillRect(0,0,cv.width,cv.height);
-    stars.forEach(s=>{
-      s.o+=s.s;
-      if(s.o>1||s.o<0) s.s=-s.s;
-      ctx.beginPath();
-      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,255,255,${Math.abs(s.o)})`;
-      ctx.fill();
-    });
+    ctx.fillStyle='#08051a';ctx.fillRect(0,0,cv.width,cv.height);
+    stars.forEach(s=>{s.o+=s.s;if(s.o>1||s.o<0)s.s=-s.s;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${Math.abs(s.o)})`;ctx.fill();});
     requestAnimationFrame(draw);
   }
   draw();
@@ -537,10 +495,10 @@ function initBG(){
 
 function initSparks(){
   const c=document.getElementById('sparks');
-  for(let i=0;i<8;i++){
+  for(let i=0;i<6;i++){
     const s=document.createElement('div');
     s.className='spark';
-    s.style.cssText=`left:${30+Math.random()*40}%;bottom:${10+Math.random()*30}%;animation-delay:${Math.random()*4}s;animation-duration:${3+Math.random()*2}s;`;
+    s.style.cssText=`left:${10+Math.random()*35}%;bottom:${5+Math.random()*25}%;animation-delay:${Math.random()*4}s;animation-duration:${3+Math.random()*2}s;`;
     c.appendChild(s);
   }
 }
@@ -556,23 +514,17 @@ function setStars(id,n){
   const el=document.getElementById(id);
   if(!el) return;
   el.innerHTML='';
-  for(let i=1;i<=5;i++){
-    const s=document.createElement('span');
-    s.className='fi-star'+(i>n?' off':'');
-    s.textContent='★';
-    el.appendChild(s);
-  }
+  for(let i=1;i<=5;i++){const s=document.createElement('span');s.className='fi-star'+(i>n?' off':'');s.textContent='★';el.appendChild(s);}
 }
 
 function pickZ(name){
   selZ=name;
   renderZodiacs();
-  const scores=[3,4,5,3,4,5,4,3,5,4,3,4];
   const idx=ZS.findIndex(z=>z.n+'座'===name);
-  const base=scores[idx]||4;
+  const base=3+Math.floor(Math.random()*2);
   setStars('fs-love',Math.min(5,base+Math.floor(Math.random()*2)));
-  setStars('fs-work',Math.min(5,base-1+Math.floor(Math.random()*2)));
-  setStars('fs-money',Math.min(5,base+Math.floor(Math.random()*2)-1));
+  setStars('fs-work',Math.min(5,base+Math.floor(Math.random()*2)-1));
+  setStars('fs-money',Math.min(5,base+Math.floor(Math.random()*2)));
   setStars('fs-health',Math.min(5,base+Math.floor(Math.random()*2)));
   goPage('pg-zodiac');
   setTimeout(()=>qSend('zodiac',name+'今日完整運勢分析'),300);
@@ -586,12 +538,8 @@ function goPage(id,navEl){
   window.scrollTo(0,0);
 }
 
-function showDaily(){
-  document.getElementById('modal-daily').classList.add('show');
-}
-function closeModal(){
-  document.getElementById('modal-daily').classList.remove('show');
-}
+function showDaily(){document.getElementById('modal-daily').classList.add('show');}
+function closeModal(){document.getElementById('modal-daily').classList.remove('show');}
 
 function addMsg(cid,role,txt){
   const box=document.getElementById(cid+'-chat');
@@ -610,19 +558,14 @@ function showTyping(cid){
   const d=document.createElement('div');
   d.className='cm ai';d.id=cid+'-tp';
   d.innerHTML=`<div class="cav"><img src="character.png"></div><div class="cbbl"><div class="typing"><span></span><span></span><span></span></div></div>`;
-  box.appendChild(d);
-  box.scrollTop=box.scrollHeight;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
 }
 function rmTyping(cid){const t=document.getElementById(cid+'-tp');if(t)t.remove();}
 
 async function callAI(msg,history){
   const dc=getDateCtx();
   const messages=[{role:'system',content:SP+'\n'+dc},...history.slice(-6),{role:'user',content:msg}];
-  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
-    body:JSON.stringify({model:'llama-3.3-70b-versatile',messages,max_tokens:2000})
-  });
+  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages,max_tokens:2000})});
   const d=await r.json();
   let reply=d.choices?.[0]?.message?.content||'九天玄女正在占卜中，請稍後再試✨';
   return cleanTxt(reply);
@@ -633,12 +576,8 @@ async function qSend(cid,txt){
   addMsg(cid,'user',txt);
   hist[cid].push({role:'user',content:pre+txt});
   showTyping(cid);
-  try{
-    const r=await callAI(pre+txt,hist[cid].slice(0,-1));
-    rmTyping(cid);
-    addMsg(cid,'ai',r.replace(/\n/g,'<br>'));
-    hist[cid].push({role:'assistant',content:r});
-  }catch(e){rmTyping(cid);addMsg(cid,'ai','九天玄女正在占卜中，請稍後再試✨');}
+  try{const r=await callAI(pre+txt,hist[cid].slice(0,-1));rmTyping(cid);addMsg(cid,'ai',r.replace(/\n/g,'<br>'));hist[cid].push({role:'assistant',content:r});}
+  catch(e){rmTyping(cid);addMsg(cid,'ai','九天玄女正在占卜中，請稍後再試✨');}
 }
 
 async function doSend(cid){
@@ -650,23 +589,16 @@ async function doSend(cid){
   addMsg(cid,'user',txt);
   hist[cid].push({role:'user',content:pre+txt});
   showTyping(cid);
-  try{
-    const r=await callAI(pre+txt,hist[cid].slice(0,-1));
-    rmTyping(cid);
-    addMsg(cid,'ai',r.replace(/\n/g,'<br>'));
-    hist[cid].push({role:'assistant',content:r});
-  }catch(e){rmTyping(cid);addMsg(cid,'ai','九天玄女正在占卜中，請稍後再試✨');}
+  try{const r=await callAI(pre+txt,hist[cid].slice(0,-1));rmTyping(cid);addMsg(cid,'ai',r.replace(/\n/g,'<br>'));hist[cid].push({role:'assistant',content:r});}
+  catch(e){rmTyping(cid);addMsg(cid,'ai','九天玄女正在占卜中，請稍後再試✨');}
 }
 
 document.querySelectorAll('.input-bar input').forEach(inp=>{
   inp.addEventListener('keypress',e=>{if(e.key==='Enter'){const id=inp.id.replace('-inp','');doSend(id);}});
 });
 
-initBG();
-initSparks();
-renderZodiacs();
+initBG();initSparks();renderZodiacs();
 document.getElementById('date-display').textContent=getToday();
-
 setStars('fs-love',4);setStars('fs-work',3);setStars('fs-money',4);setStars('fs-health',5);
 
 addMsg('zodiac','ai','「星月交輝，命途閃耀」✨<br><br>親愛的有緣人，歡迎來到古錐星命閣！😊<br>請選擇您的星座，九天玄女為您解析今日運勢 🌙');
