@@ -7,13 +7,9 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;min-height:100vh;overflow-x:hidden;}
-
-/* 星空背景 */
 .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
 .star{position:absolute;background:#fff;border-radius:50%;animation:twinkle 3s infinite;}
 @keyframes twinkle{0%,100%{opacity:0.2;}50%{opacity:1;}}
-
-/* 頂部狀態欄 */
 .top-bar{position:relative;z-index:10;background:linear-gradient(180deg,rgba(13,8,32,0.95),rgba(13,8,32,0.7));padding:8px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(212,175,55,0.3);}
 .char-info{display:flex;align-items:center;gap:8px;}
 .char-avatar{width:44px;height:44px;border-radius:50%;border:2px solid #d4af37;overflow:hidden;background:#1a0d3a;}
@@ -24,23 +20,16 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .lv-fill{width:75%;height:100%;background:linear-gradient(90deg,#d4af37,#ffd700);border-radius:2px;}
 .top-stats{display:flex;gap:8px;}
 .stat{display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:4px 8px;}
-.stat .icon{font-size:14px;}
 .stat span{font-size:12px;color:#ffd700;}
-
-/* 角色展示區 */
 .hero-section{position:relative;z-index:5;width:100%;height:280px;overflow:hidden;}
 .hero-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,#0d0820 0%,#1a0d3a 40%,#0d1a3a 100%);}
-.hero-clouds{position:absolute;bottom:0;left:0;width:100%;height:60px;background:linear-gradient(180deg,transparent,rgba(100,150,255,0.1));}
 .character-img{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:260px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(212,175,55,0.4));animation:float 4s ease-in-out infinite;}
 @keyframes float{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(-10px);}}
 .hero-title{position:absolute;top:15px;left:0;right:0;text-align:center;}
 .hero-title h1{font-size:20px;color:#d4af37;letter-spacing:3px;text-shadow:0 0 20px rgba(212,175,55,0.8);}
 .hero-title p{font-size:11px;color:#9b8bbf;margin-top:3px;}
-.hero-sparkles{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
 .sparkle{position:absolute;color:#d4af37;font-size:12px;animation:sparkleAnim 3s infinite;}
 @keyframes sparkleAnim{0%,100%{opacity:0;transform:scale(0);}50%{opacity:1;transform:scale(1);}}
-
-/* 功能選單 */
 .menu-section{position:relative;z-index:10;padding:10px 12px;}
 .menu-title{text-align:center;font-size:12px;color:#9b8bbf;letter-spacing:2px;margin-bottom:8px;}
 .menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
@@ -51,8 +40,6 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .menu-card h3{font-size:13px;color:#d4af37;margin-bottom:2px;}
 .menu-card p{font-size:10px;color:#7a6a9a;}
 .menu-card.hot::after{content:'熱門';position:absolute;top:6px;right:6px;background:linear-gradient(135deg,#ff4444,#ff8800);border-radius:8px;padding:1px 6px;font-size:9px;color:#fff;}
-
-/* 星座選擇 */
 .zodiac-section{position:relative;z-index:10;padding:8px 12px;}
 .section-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .section-hd::before,.section-hd::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.4),transparent);}
@@ -63,30 +50,21 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .z-item .zs{font-size:18px;}
 .z-item .zn{font-size:10px;color:#d4af37;margin-top:2px;}
 .z-item .zd{font-size:8px;color:#6a5a8a;margin-top:1px;}
-
-/* 對話頁面 */
 .page{display:none;padding-bottom:65px;}
 .page.active{display:block;}
-
 .page-header{position:relative;z-index:10;background:linear-gradient(180deg,#0d0820,#1a0d3a);padding:12px 15px;border-bottom:1px solid rgba(212,175,55,0.2);display:flex;align-items:center;gap:10px;}
 .back-btn{width:32px;height:32px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;}
 .page-header h2{font-size:16px;color:#d4af37;}
 .page-header-char{width:36px;height:36px;border-radius:50%;border:1px solid #d4af37;overflow:hidden;margin-left:auto;}
 .page-header-char img{width:100%;height:100%;object-fit:cover;object-position:top;}
-
-/* 星座快選 */
 .zodiac-mini{display:flex;overflow-x:auto;gap:8px;padding:10px 12px;scrollbar-width:none;}
 .zodiac-mini::-webkit-scrollbar{display:none;}
 .zm-item{flex-shrink:0;background:rgba(26,13,58,0.8);border:1px solid rgba(212,175,55,0.2);border-radius:20px;padding:5px 12px;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
 .zm-item.sel{background:rgba(212,175,55,0.2);border-color:#d4af37;}
 .zm-item span{font-size:12px;color:#d4af37;}
-
-/* 快速按鈕 */
 .quick-row{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 8px;}
 .q-btn{background:rgba(26,13,58,0.8);border:1px solid rgba(212,175,55,0.25);border-radius:15px;padding:5px 11px;font-size:11px;color:#c4a040;cursor:pointer;white-space:nowrap;}
 .q-btn:active{background:rgba(212,175,55,0.15);}
-
-/* 對話框 */
 .chat-wrap{padding:0 12px;}
 .chat-box{background:rgba(10,5,25,0.9);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:12px;min-height:200px;max-height:350px;overflow-y:auto;margin-bottom:10px;}
 .chat-box::-webkit-scrollbar{width:3px;}
@@ -104,36 +82,23 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 .typing-dots span:nth-child(2){animation-delay:0.2s;}
 .typing-dots span:nth-child(3){animation-delay:0.4s;}
 @keyframes dot{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
-
-/* 輸入區 */
 .input-row{display:flex;gap:8px;padding:0 12px;}
 .input-row input{flex:1;background:rgba(26,13,58,0.8);border:1px solid rgba(212,175,55,0.3);border-radius:22px;padding:10px 15px;color:#fff;font-size:13px;outline:none;}
 .input-row input::placeholder{color:#5a4a7a;}
 .input-row input:focus{border-color:rgba(212,175,55,0.6);}
 .send-btn{width:42px;height:42px;background:linear-gradient(135deg,#c4a040,#8a6d2a);border:none;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .send-btn:active{transform:scale(0.92);}
-
-/* 底部導航 */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,5,25,0.97);border-top:1px solid rgba(212,175,55,0.25);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
 .nav-btn{flex:1;padding:8px 4px;text-align:center;cursor:pointer;}
 .nav-btn .ni{font-size:20px;margin-bottom:2px;}
 .nav-btn .nl{font-size:9px;color:#6a5a8a;}
 .nav-btn.on .nl{color:#d4af37;}
-
-/* 運勢星級 */
-.fortune-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
-.f-item{background:rgba(26,13,58,0.7);border:1px solid rgba(212,175,55,0.15);border-radius:8px;padding:8px;}
-.f-item .f-label{font-size:11px;color:#9b8bbf;margin-bottom:4px;}
-.stars-row{display:flex;gap:2px;}
-.s-star{font-size:14px;color:#d4af37;}
-.s-star.empty{color:#3a2a5a;}
 </style>
 </head>
 <body>
 
 <div class="stars" id="stars"></div>
 
-<!-- 首頁 -->
 <div class="page active" id="pg-home">
   <div class="top-bar">
     <div class="char-info">
@@ -145,8 +110,8 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
       </div>
     </div>
     <div class="top-stats">
-      <div class="stat"><span class="icon">⚡</span><span>120/120</span></div>
-      <div class="stat"><span class="icon">💰</span><span>9,999</span></div>
+      <div class="stat"><span>⚡ 120/120</span></div>
+      <div class="stat"><span>💰 9,999</span></div>
     </div>
   </div>
 
@@ -157,12 +122,10 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
       <p>九天玄女為您指引命途</p>
     </div>
     <img src="character.png" class="character-img" alt="九天玄女">
-    <div class="hero-sparkles">
-      <span class="sparkle" style="top:20%;left:10%;animation-delay:0s">✦</span>
-      <span class="sparkle" style="top:30%;right:12%;animation-delay:1s">★</span>
-      <span class="sparkle" style="top:60%;left:8%;animation-delay:2s">✧</span>
-      <span class="sparkle" style="top:50%;right:8%;animation-delay:0.5s">✦</span>
-    </div>
+    <span class="sparkle" style="top:20%;left:10%;animation-delay:0s">✦</span>
+    <span class="sparkle" style="top:30%;right:12%;animation-delay:1s">★</span>
+    <span class="sparkle" style="top:60%;left:8%;animation-delay:2s">✧</span>
+    <span class="sparkle" style="top:50%;right:8%;animation-delay:0.5s">✦</span>
   </div>
 
   <div class="menu-section">
@@ -197,7 +160,6 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 星座頁 -->
 <div class="page" id="pg-zodiac">
   <div class="page-header">
     <div class="back-btn" onclick="openPage('pg-home')">←</div>
@@ -221,7 +183,6 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 塔羅頁 -->
 <div class="page" id="pg-tarot">
   <div class="page-header">
     <div class="back-btn" onclick="openPage('pg-home')">←</div>
@@ -243,7 +204,6 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 八字頁 -->
 <div class="page" id="pg-bazi">
   <div class="page-header">
     <div class="back-btn" onclick="openPage('pg-home')">←</div>
@@ -264,7 +224,6 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 紫微頁 -->
 <div class="page" id="pg-ziwei">
   <div class="page-header">
     <div class="back-btn" onclick="openPage('pg-home')">←</div>
@@ -285,7 +244,6 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
   </div>
 </div>
 
-<!-- 底部導航 -->
 <div class="bottom-nav">
   <div class="nav-btn on" onclick="openPage('pg-home',this)"><div class="ni">🏠</div><div class="nl">首頁</div></div>
   <div class="nav-btn" onclick="openPage('pg-zodiac',this)"><div class="ni">⭐</div><div class="nl">星座</div></div>
@@ -295,8 +253,8 @@ body{background:#0d0820;color:#fff;font-family:'Microsoft JhengHei',sans-serif;m
 </div>
 
 <script>
-const KEY = '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';
-const ZS = [
+const KEY='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';
+const ZS=[
   {n:'牡羊',s:'♈',d:'3/21-4/19'},{n:'金牛',s:'♉',d:'4/20-5/20'},
   {n:'雙子',s:'♊',d:'5/21-6/20'},{n:'巨蟹',s:'♋',d:'6/21-7/22'},
   {n:'獅子',s:'♌',d:'7/23-8/22'},{n:'處女',s:'♍',d:'8/23-9/22'},
@@ -304,9 +262,19 @@ const ZS = [
   {n:'射手',s:'♐',d:'11/22-12/21'},{n:'摩羯',s:'♑',d:'12/22-1/19'},
   {n:'水瓶',s:'♒',d:'1/20-2/18'},{n:'雙魚',s:'♓',d:'2/19-3/20'}
 ];
-const SP = `汝乃「古錐星命閣」之神秘命理師，道號「九天玄女」，精通西洋占星、塔羅牌、中國八字命理、紫微斗數。全程只能輸出繁體中文。自稱「玄女我」，稱用戶為「有緣人」。語氣神秘莊重，適時加入✨🌙🔮⭐💫🌟符號，開頭引用神秘天象詩句，結尾有祝福語。現在是2026年丙午年。`;
-let selZ = '';
-let hist = {zodiac:[],tarot:[],bazi:[],ziwei:[]};
+const SP=`妳是「古錐星命閣」的神秘命理師「九天玄女」，精通西洋占星、塔羅牌、中國八字命理、紫微斗數。
+
+【重要規則】
+一、全程只能輸出繁體中文。
+二、自稱「九天玄女」，稱用戶為「親愛的有緣人」。
+三、說話風格親切溫暖，像朋友一樣關心用戶，但帶有神秘感。多用「哦」「呢」「喔」「嗯」等親切語氣詞。
+四、適時加入✨🌙🔮⭐💫🌟符號。
+五、開頭引用一句神秘天象詩句，結尾給予溫暖祝福。
+六、若用戶選擇了特定星座，只針對該星座詳細解析，不要同時說12個星座。
+七、現在是2026年丙午年。`;
+
+let selZ='';
+let hist={zodiac:[],tarot:[],bazi:[],ziwei:[]};
 
 function createStars(){
   const c=document.getElementById('stars');
@@ -355,7 +323,7 @@ function showTyping(cid){
   const box=document.getElementById(cid+'-chat');
   if(!box) return;
   const d=document.createElement('div');
-  d.className='msg ai'; d.id=cid+'-typing';
+  d.className='msg ai';d.id=cid+'-typing';
   d.innerHTML=`<div class="av"><img src="character.png"></div><div class="bbl"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
   box.appendChild(d);
   box.scrollTop=box.scrollHeight;
@@ -371,13 +339,13 @@ async function callAI(msg,history){
     body:JSON.stringify({model:'llama-3.3-70b-versatile',messages,max_tokens:2000})
   });
   const d=await r.json();
-  return d.choices?.[0]?.message?.content||'玄女我正在占卜中，請稍後再試✨';
+  return d.choices?.[0]?.message?.content||'九天玄女正在占卜中，請稍後再試✨';
 }
 
 async function qSend(cid,txt){
-  const prefix=selZ&&cid==='zodiac'?selZ+'的':'';
+  const prefix=selZ&&cid==='zodiac'?'【用戶選擇的星座是'+selZ+'，請只針對'+selZ+'詳細解析，不要說其他星座】\n':'';
   const fullTxt=prefix+txt;
-  addMsg(cid,'user',fullTxt);
+  addMsg(cid,'user',txt);
   hist[cid].push({role:'user',content:fullTxt});
   showTyping(cid);
   try{
@@ -385,7 +353,7 @@ async function qSend(cid,txt){
     rmTyping(cid);
     addMsg(cid,'ai',r.replace(/\n/g,'<br>'));
     hist[cid].push({role:'assistant',content:r});
-  }catch(e){rmTyping(cid);addMsg(cid,'ai','玄女我正在占卜中，請稍後再試✨');}
+  }catch(e){rmTyping(cid);addMsg(cid,'ai','九天玄女正在占卜中，請稍後再試✨');}
 }
 
 async function doSend(cid){
@@ -393,15 +361,16 @@ async function doSend(cid){
   const txt=inp.value.trim();
   if(!txt) return;
   inp.value='';
+  const prefix=selZ&&cid==='zodiac'?'【用戶選擇的星座是'+selZ+'】\n':'';
   addMsg(cid,'user',txt);
-  hist[cid].push({role:'user',content:txt});
+  hist[cid].push({role:'user',content:prefix+txt});
   showTyping(cid);
   try{
-    const r=await callAI(txt,hist[cid].slice(0,-1));
+    const r=await callAI(prefix+txt,hist[cid].slice(0,-1));
     rmTyping(cid);
     addMsg(cid,'ai',r.replace(/\n/g,'<br>'));
     hist[cid].push({role:'assistant',content:r});
-  }catch(e){rmTyping(cid);addMsg(cid,'ai','玄女我正在占卜中，請稍後再試✨');}
+  }catch(e){rmTyping(cid);addMsg(cid,'ai','九天玄女正在占卜中，請稍後再試✨');}
 }
 
 document.querySelectorAll('.input-row input').forEach(inp=>{
@@ -411,10 +380,10 @@ document.querySelectorAll('.input-row input').forEach(inp=>{
 createStars();
 renderZS();
 
-addMsg('zodiac','ai','「星月交輝，命運指引」✨<br><br>有緣人，歡迎來到古錐星命閣！<br>請選擇您的星座，玄女我為您解析今日運勢 🌙');
-addMsg('tarot','ai','「牌影搖曳，天機乍現」🔮<br><br>有緣人，靜下心來，玄女我將為您抽出命運之牌✨');
-addMsg('bazi','ai','「八字藏天機，四柱定乾坤」🌟<br><br>有緣人，請告訴玄女我您的出生年月日時<br>例如：「1990年5月15日上午8點」');
-addMsg('ziwei','ai','「紫微星耀，命運昭昭」✨<br><br>有緣人，請告訴玄女我您的出生年月日時，玄女我將為您排出完整紫微命盤 🌙');
+addMsg('zodiac','ai','「星月交輝，命途閃耀」✨<br><br>親愛的有緣人，歡迎來到古錐星命閣！😊<br>請選擇您的星座，九天玄女為您解析今日運勢 🌙');
+addMsg('tarot','ai','「牌影搖曳，天機乍現」🔮<br><br>親愛的有緣人，靜下心來喔～<br>九天玄女將為您抽出命運之牌，請說出您的問題 ✨');
+addMsg('bazi','ai','「八字藏天機，四柱定乾坤」🌟<br><br>親愛的有緣人，請告訴九天玄女您的出生年月日時喔！<br>例如：「1990年5月15日上午8點」😊');
+addMsg('ziwei','ai','「紫微星耀，命運昭昭」✨<br><br>親愛的有緣人，請告訴九天玄女您的出生年月日時呢～<br>九天玄女將為您排出完整紫微命盤 🌙');
 </script>
 </body>
 </html>
