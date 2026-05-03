@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>古錐星命閣</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0a1a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* 星空背景 */
+.stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle 3s infinite;}
+@keyframes twinkle{0%,100%{opacity:0.3;transform:scale(1);}50%{opacity:1;transform:scale(1.3);}}
+
+/* 頂部 */
+.header{position:relative;z-index:10;text-align:center;padding:20px 15px 10px;}
+.header h1{font-size:22px;color:#d4af37;letter-spacing:3px;text-shadow:0 0 20px rgba(212,175,55,0.5);}
+.header p{font-size:12px;color:#9b8bbf;margin-top:5px;}
+
+/* 星宿仙子角色 */
+.character-area{position:relative;z-index:10;display:flex;justify-content:center;align-items:center;padding:10px 0;}
+.character{position:relative;width:120px;height:160px;}
+.char-body{position:absolute;bottom:0;left:50%;transform:translateX(-50%);}
+.char-robe{width:80px;height:110px;background:linear-gradient(180deg,#4a2d7a,#2d1a4a);border-radius:40px 40px 30px 30px;position:relative;margin:0 auto;}
+.char-robe::before{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:40px;height:55px;background:linear-gradient(180deg,#5a3d8a,#3d2a5a);border-radius:20px 20px 0 0;}
+.char-head{width:42px;height:48px;background:linear-gradient(180deg,#f5c5a3,#e8a882);border-radius:50% 50% 45% 45%;margin:0 auto;position:relative;z-index:2;}
+.char-head::before{content:'';position:absolute;top:-20px;left:-10px;width:62px;height:35px;background:linear-gradient(180deg,#2d1a4a,#4a2d7a);border-radius:50% 50% 0 0;z-index:-1;}
+.char-hair-front{position:absolute;top:8px;left:2px;width:38px;height:20px;background:#2d1a4a;border-radius:0 0 20px 20px;z-index:3;}
+.char-eye-l{position:absolute;top:18px;left:9px;width:7px;height:5px;background:#3d2a5a;border-radius:50%;z-index:4;}
+.char-eye-r{position:absolute;top:18px;right:9px;width:7px;height:5px;background:#3d2a5a;border-radius:50%;z-index:4;}
+.char-mouth{position:absolute;top:28px;left:50%;transform:translateX(-50%);width:12px;height:5px;border-bottom:2px solid #c47a5a;border-radius:0 0 10px 10px;}
+.char-star1,.char-star2,.char-star3{position:absolute;color:#d4af37;font-size:14px;animation:floatStar 3s ease-in-out infinite;}
+.char-star1{top:10px;right:-15px;animation-delay:0s;}
+.char-star2{top:30px;left:-15px;animation-delay:1s;}
+.char-star3{bottom:30px;right:-10px;animation-delay:2s;}
+@keyframes floatStar{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-10px) rotate(180deg);}}
+.char-wand{position:absolute;bottom:20px;right:-20px;width:4px;height:60px;background:linear-gradient(180deg,#d4af37,#8a6d2a);border-radius:2px;transform:rotate(-30deg);}
+.char-wand::before{content:'★';position:absolute;top:-12px;left:-8px;color:#d4af37;font-size:18px;animation:wandGlow 2s ease-in-out infinite;}
+@keyframes wandGlow{0%,100%{text-shadow:0 0 5px #d4af37;}50%{text-shadow:0 0 20px #d4af37,0 0 40px #d4af37;}}
+.char-info{text-align:center;margin-top:5px;}
+.char-info h3{font-size:14px;color:#d4af37;letter-spacing:2px;}
+.char-info p{font-size:11px;color:#9b8bbf;}
+
+/* 功能選單 */
+.menu-grid{position:relative;z-index:10;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px 15px;}
+.menu-btn{background:linear-gradient(135deg,rgba(74,45,122,0.8),rgba(45,26,74,0.9));border:1px solid rgba(212,175,55,0.3);border-radius:15px;padding:15px 10px;text-align:center;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;}
+.menu-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.1),transparent);transition:left 0.5s;}
+.menu-btn:hover::before,.menu-btn:active::before{left:100%;}
+.menu-btn:active{transform:scale(0.97);}
+.menu-btn .icon{font-size:28px;margin-bottom:8px;}
+.menu-btn h3{font-size:14px;color:#d4af37;margin-bottom:3px;}
+.menu-btn p{font-size:11px;color:#9b8bbf;}
+.menu-btn.featured{border-color:rgba(212,175,55,0.6);background:linear-gradient(135deg,rgba(100,60,160,0.9),rgba(60,35,100,0.95));}
+
+/* 星座選擇區 */
+.zodiac-section{position:relative;z-index:10;padding:10px 15px;}
+.section-title{font-size:14px;color:#d4af37;letter-spacing:2px;margin-bottom:10px;text-align:center;display:flex;align-items:center;gap:8px;justify-content:center;}
+.section-title::before,.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.5),transparent);}
+.zodiac-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.zodiac-item{background:rgba(74,45,122,0.4);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:8px 5px;text-align:center;cursor:pointer;transition:all 0.3s;}
+.zodiac-item:active,.zodiac-item.selected{background:rgba(212,175,55,0.2);border-color:rgba(212,175,55,0.6);transform:scale(0.97);}
+.zodiac-item .z-symbol{font-size:20px;margin-bottom:3px;}
+.zodiac-item .z-name{font-size:11px;color:#d4af37;}
+.zodiac-item .z-date{font-size:9px;color:#9b8bbf;}
+
+/* 對話區 */
+.chat-section{position:relative;z-index:10;padding:10px 15px;}
+.chat-box{background:rgba(20,10,40,0.9);border:1px solid rgba(212,175,55,0.3);border-radius:15px;padding:15px;min-height:120px;max-height:300px;overflow-y:auto;margin-bottom:10px;}
+.chat-msg{margin-bottom:12px;animation:fadeIn 0.5s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.chat-msg.ai{display:flex;gap:8px;align-items:flex-start;}
+.chat-msg.ai .avatar{width:28px;height:28px;background:linear-gradient(135deg,#4a2d7a,#d4af37);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.chat-msg.ai .bubble{background:rgba(74,45,122,0.6);border:1px solid rgba(212,175,55,0.2);border-radius:0 12px 12px 12px;padding:10px 12px;font-size:13px;line-height:1.6;color:#e8d5ff;max-width:85%;}
+.chat-msg.user{display:flex;justify-content:flex-end;}
+.chat-msg.user .bubble{background:rgba(212,175,55,0.2);border:1px solid rgba(212,175,55,0.4);border-radius:12px 0 12px 12px;padding:10px 12px;font-size:13px;color:#fff;max-width:85%;}
+.typing{display:flex;gap:4px;align-items:center;padding:5px 0;}
+.typing span{width:6px;height:6px;background:#9b8bbf;border-radius:50%;animation:typing 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:0.2s;}
+.typing span:nth-child(3){animation-delay:0.4s;}
+@keyframes typing{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
+
+/* 輸入區 */
+.input-area{display:flex;gap:8px;}
+.input-area input{flex:1;background:rgba(74,45,122,0.4);border:1px solid rgba(212,175,55,0.3);border-radius:25px;padding:10px 15px;color:#fff;font-size:13px;outline:none;}
+.input-area input::placeholder{color:#6b5a8a;}
+.input-area input:focus{border-color:rgba(212,175,55,0.6);}
+.send-btn{width:42px;height:42px;background:linear-gradient(135deg,#d4af37,#8a6d2a);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all 0.2s;}
+.send-btn:active{transform:scale(0.9);}
+
+/* 快速問題 */
+.quick-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.quick-btn{background:rgba(74,45,122,0.5);border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:5px 12px;font-size:11px;color:#d4af37;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+.quick-btn:active{background:rgba(212,175,55,0.2);}
+
+/* 底部導航 */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,5,20,0.95);border-top:1px solid rgba(212,175,55,0.3);display:flex;z-index:100;}
+.nav-item{flex:1;padding:10px 5px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.nav-item .nav-icon{font-size:20px;margin-bottom:3px;}
+.nav-item .nav-label{font-size:10px;color:#9b8bbf;}
+.nav-item.active .nav-label{color:#d4af37;}
+
+/* 頁面 */
+.page{display:none;padding-bottom:70px;}
+.page.active{display:block;}
+
+/* 載入動畫 */
+.loading{display:flex;align-items:center;gap:8px;color:#9b8bbf;font-size:13px;}
+
+/* 滾動條 */
+.chat-box::-webkit-scrollbar{width:4px;}
+.chat-box::-webkit-scrollbar-track{background:transparent;}
+.chat-box::-webkit-scrollbar-thumb{background:rgba(212,175,55,0.3);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<!-- 主頁 -->
+<div class="page active" id="page-home">
+  <div class="header">
+    <h1>✨ 古錐星命閣 ✨</h1>
+    <p>星宿仙子為您指引星途</p>
+  </div>
+
+  <div class="character-area">
+    <div>
+      <div class="character">
+        <div class="char-body">
+          <div class="char-head">
+            <div class="char-hair-front"></div>
+            <div class="char-eye-l"></div>
+            <div class="char-eye-r"></div>
+            <div class="char-mouth"></div>
+          </div>
+          <div class="char-robe"></div>
+          <div class="char-wand"></div>
+        </div>
+        <div class="char-star1">★</div>
+        <div class="char-star2">✦</div>
+        <div class="char-star3">✧</div>
+      </div>
+      <div class="char-info">
+        <h3>星宿仙子</h3>
+        <p>Lv.99 命理大師</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-grid">
+    <div class="menu-btn featured" onclick="goPage('page-zodiac')">
+      <div class="icon">⭐</div>
+      <h3>星座運勢</h3>
+      <p>今日運勢解析</p>
+    </div>
+    <div class="menu-btn" onclick="goPage('page-tarot')">
+      <div class="icon">🃏</div>
+      <h3>塔羅占卜</h3>
+      <p>神秘牌卡指引</p>
+    </div>
+    <div class="menu-btn" onclick="goPage('page-bazi')">
+      <div class="icon">📅</div>
+      <h3>八字命盤</h3>
+      <p>深度命理解析</p>
+    </div>
+    <div class="menu-btn" onclick="goPage('page-ziwei')">
+      <div class="icon">🌟</div>
+      <h3>紫微斗數</h3>
+      <p>完整命盤分析</p>
+    </div>
+  </div>
+
+  <div class="zodiac-section">
+    <div class="section-title">選擇星座</div>
+    <div class="zodiac-grid" id="zodiac-home-grid"></div>
+  </div>
+</div>
+
+<!-- 占卜對話頁 -->
+<div class="page" id="page-zodiac">
+  <div class="header">
+    <h1>⭐ 星座運勢</h1>
+    <p id="zodiac-subtitle">選擇您的星座</p>
+  </div>
+  <div class="zodiac-section">
+    <div class="zodiac-grid" id="zodiac-select-grid"></div>
+  </div>
+  <div class="chat-section">
+    <div class="quick-btns" id="zodiac-quick"></div>
+    <div class="chat-box" id="zodiac-chat"></div>
+    <div class="input-area">
+      <input type="text" id="zodiac-input" placeholder="問仙子我任何問題..." />
+      <button class="send-btn" onclick="sendMsg('zodiac')">➤</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-tarot">
+  <div class="header">
+    <h1>🃏 塔羅占卜</h1>
+    <p>靜心許願，讓星宿仙子為您抽牌</p>
+  </div>
+  <div class="chat-section">
+    <div class="quick-btns">
+      <span class="quick-btn" onclick="quickSend('tarot','幫我抽一張塔羅牌')">抽一張牌</span>
+      <span class="quick-btn" onclick="quickSend('tarot','幫我做三牌陣占卜')">三牌陣</span>
+      <span class="quick-btn" onclick="quickSend('tarot','我的愛情塔羅')">愛情塔羅</span>
+      <span class="quick-btn" onclick="quickSend('tarot','我的事業塔羅')">事業塔羅</span>
+    </div>
+    <div class="chat-box" id="tarot-chat"></div>
+    <div class="input-area">
+      <input type="text" id="tarot-input" placeholder="輸入您的問題或心願..." />
+      <button class="send-btn" onclick="sendMsg('tarot')">➤</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-bazi">
+  <div class="header">
+    <h1>📅 八字命盤</h1>
+    <p>輸入生辰八字進行深度解析</p>
+  </div>
+  <div class="chat-section">
+    <div class="quick-btns">
+      <span class="quick-btn" onclick="quickSend('bazi','算命：1990年5月15日上午8點')">範例生辰</span>
+      <span class="quick-btn" onclick="quickSend('bazi','我的八字個性分析')">個性分析</span>
+      <span class="quick-btn" onclick="quickSend('bazi','2026年流年運勢')">流年運勢</span>
+    </div>
+    <div class="chat-box" id="bazi-chat">
+      <div class="chat-msg ai">
+        <div class="avatar">✨</div>
+        <div class="bubble">「星辰映照命運，八字藏天機」🌟<br><br>有緣人，請告訴仙子我您的出生年月日時，例如：<br>「1990年5月15日上午8點」<br><br>仙子我將為您精算四柱八字、五行分析、格局判斷！</div>
+      </div>
+    </div>
+    <div class="input-area">
+      <input type="text" id="bazi-input" placeholder="輸入生辰，如：1990年5月15日8點" />
+      <button class="send-btn" onclick="sendMsg('bazi')">➤</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-ziwei">
+  <div class="header">
+    <h1>🌟 紫微斗數</h1>
+    <p>千年命理智慧，為您解析人生</p>
+  </div>
+  <div class="chat-section">
+    <div class="quick-btns">
+      <span class="quick-btn" onclick="quickSend('ziwei','紫微斗數：1990年5月15日上午8點')">範例生辰</span>
+      <span class="quick-btn" onclick="quickSend('ziwei','我的命宮主星')">命宮分析</span>
+      <span class="quick-btn" onclick="quickSend('ziwei','我的事業財運')">事業財運</span>
+    </div>
+    <div class="chat-box" id="ziwei-chat">
+      <div class="chat-msg ai">
+        <div class="avatar">🌟</div>
+        <div class="bubble">「紫微星耀，命運昭昭」✨<br><br>有緣人，紫微斗數需要您的出生年月日時，例如：<br>「1990年5月15日上午8點」<br><br>仙子我將為您排出完整命盤！</div>
+      </div>
+    </div>
+    <div class="input-area">
+      <input type="text" id="ziwei-input" placeholder="輸入生辰，如：1990年5月15日8點" />
+      <button class="send-btn" onclick="sendMsg('ziwei')">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- 底部導航 -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="goPage('page-home',this)">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">首頁</div>
+  </div>
+  <div class="nav-item" onclick="goPage('page-zodiac',this)">
+    <div class="nav-icon">⭐</div>
+    <div class="nav-label">星座</div>
+  </div>
+  <div class="nav-item" onclick="goPage('page-tarot',this)">
+    <div class="nav-icon">🃏</div>
+    <div class="nav-label">塔羅</div>
+  </div>
+  <div class="nav-item" onclick="goPage('page-bazi',this)">
+    <div class="nav-icon">📅</div>
+    <div class="nav-label">八字</div>
+  </div>
+  <div class="nav-item" onclick="goPage('page-ziwei',this)">
+    <div class="nav-icon">🌟</div>
+    <div class="nav-label">紫微</div>
+  </div>
+</div>
+
+<script>
+const GROQ_API_KEY = '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';
+
+const ZODIACS = [
+  {name:'牡羊座',symbol:'♈',date:'3/21-4/19'},
+  {name:'金牛座',symbol:'♉',date:'4/20-5/20'},
+  {name:'雙子座',symbol:'♊',date:'5/21-6/20'},
+  {name:'巨蟹座',symbol:'♋',date:'6/21-7/22'},
+  {name:'獅子座',symbol:'♌',date:'7/23-8/22'},
+  {name:'處女座',symbol:'♍',date:'8/23-9/22'},
+  {name:'天秤座',symbol:'♎',date:'9/23-10/22'},
+  {name:'天蠍座',symbol:'♏',date:'10/23-11/21'},
+  {name:'射手座',symbol:'♐',date:'11/22-12/21'},
+  {name:'摩羯座',symbol:'♑',date:'12/22-1/19'},
+  {name:'水瓶座',symbol:'♒',date:'1/20-2/18'},
+  {name:'雙魚座',symbol:'♓',date:'2/19-3/20'}
+];
+
+const SYSTEM_PROMPT = `汝乃「古錐星命閣」之神秘占星師與命理師，道號「星宿仙子」，精通西洋占星、塔羅牌、中國八字命理、紫微斗數四大命理體系。
+【絕對禁令】全程只能輸出繁體中文。
+【說話風格】自稱「仙子我」，稱用戶為「有緣人」，語氣神秘莊重，適時加入✨🌙🔮⭐💫🌟符號，開頭引用神秘天象詩句，結尾有祝福語。
+【總規則】現在是2026年丙午年，全程繁體中文，內容詳細專業。`;
+
+let selectedZodiac = '';
+let chatHistory = {zodiac:[],tarot:[],bazi:[],ziwei:[]};
+
+function createStars(){
+  const c = document.getElementById('stars');
+  for(let i=0;i<80;i++){
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.cssText = `width:${Math.random()*3+1}px;height:${Math.random()*3+1}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${Math.random()*3+2}s;`;
+    c.appendChild(s);
+  }
+}
+
+function renderZodiacs(){
+  const grids = ['zodiac-home-grid','zodiac-select-grid'];
+  grids.forEach(id=>{
+    const g = document.getElementById(id);
+    if(!g) return;
+    g.innerHTML = ZODIACS.map((z,i)=>`
+      <div class="zodiac-item ${selectedZodiac===z.name?'selected':''}" onclick="selectZodiac('${z.name}','${id}')">
+        <div class="z-symbol">${z.symbol}</div>
+        <div class="z-name">${z.name.replace('座','')}</div>
+        <div class="z-date">${z.date}</div>
+      </div>`).join('');
+  });
+}
+
+function selectZodiac(name, gridId){
+  selectedZodiac = name;
+  renderZodiacs();
+  document.getElementById('zodiac-subtitle').textContent = '已選擇：' + name;
+  const quickBtns = document.getElementById('zodiac-quick');
+  quickBtns.innerHTML = `
+    <span class="quick-btn" onclick="quickSend('zodiac','${name}今日運勢')">今日運勢</span>
+    <span class="quick-btn" onclick="quickSend('zodiac','${name}本週運勢')">本週運勢</span>
+    <span class="quick-btn" onclick="quickSend('zodiac','${name}愛情運勢')">愛情運勢</span>
+    <span class="quick-btn" onclick="quickSend('zodiac','${name}財運分析')">財運分析</span>
+  `;
+  goPage('page-zodiac');
+  setTimeout(()=>quickSend('zodiac', name+'今日完整運勢分析'), 300);
+}
+
+function goPage(pageId, navEl){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(navEl) navEl.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function addMsg(chatId, role, text){
+  const box = document.getElementById(chatId+'-chat');
+  if(!box) return;
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + (role==='ai'?'ai':'user');
+  if(role==='ai'){
+    div.innerHTML = `<div class="avatar">✨</div><div class="bubble">${text}</div>`;
+  } else {
+    div.innerHTML = `<div class="bubble">${text}</div>`;
+  }
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping(chatId){
+  const box = document.getElementById(chatId+'-chat');
+  if(!box) return;
+  const div = document.createElement('div');
+  div.className = 'chat-msg ai';
+  div.id = chatId+'-typing';
+  div.innerHTML = `<div class="avatar">✨</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function removeTyping(chatId){
+  const t = document.getElementById(chatId+'-typing');
+  if(t) t.remove();
+}
+
+async function callGroq(message, history){
+  const messages = [
+    {role:'system', content: SYSTEM_PROMPT},
+    ...history.slice(-6),
+    {role:'user', content: message}
+  ];
+  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+GROQ_API_KEY,'Content-Type':'application/json'},
+    body: JSON.stringify({model:'llama-3.3-70b-versatile',messages,max_tokens:2000})
+  });
+  const data = await resp.json();
+  return data.choices?.[0]?.message?.content || '星宿仙子正在占卜中，請稍後再試✨';
+}
+
+async function sendMsg(chatId){
+  const input = document.getElementById(chatId+'-input');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  addMsg(chatId, 'user', text);
+  chatHistory[chatId].push({role:'user',content:text});
+  showTyping(chatId);
+  try{
+    const reply = await callGroq(text, chatHistory[chatId].slice(0,-1));
+    removeTyping(chatId);
+    addMsg(chatId, 'ai', reply.replace(/\n/g,'<br>'));
+    chatHistory[chatId].push({role:'assistant',content:reply});
+  } catch(e){
+    removeTyping(chatId);
+    addMsg(chatId, 'ai', '星宿仙子正在占卜中，請稍後再試✨');
+  }
+}
+
+async function quickSend(chatId, text){
+  addMsg(chatId, 'user', text);
+  chatHistory[chatId].push({role:'user',content:text});
+  showTyping(chatId);
+  try{
+    const reply = await callGroq(text, chatHistory[chatId].slice(0,-1));
+    removeTyping(chatId);
+    addMsg(chatId, 'ai', reply.replace(/\n/g,'<br>'));
+    chatHistory[chatId].push({role:'assistant',content:reply});
+  } catch(e){
+    removeTyping(chatId);
+    addMsg(chatId, 'ai', '星宿仙子正在占卜中，請稍後再試✨');
+  }
+}
+
+document.querySelectorAll('.input-area input').forEach(input=>{
+  input.addEventListener('keypress', e=>{
+    if(e.key==='Enter'){
+      const id = input.id.replace('-input','');
+      sendMsg(id);
+    }
+  });
+});
+
+createStars();
+renderZodiacs();
+
+addMsg('zodiac','ai','「星月交輝，命運指引」✨<br><br>有緣人，歡迎來到古錐星命閣！<br>請選擇您的星座，仙子我為您解析今日運勢 🌙');
+addMsg('tarot','ai','「牌影搖曳，天機乍現」🔮<br><br>有緣人，靜下心來，仙子我將為您抽出命運之牌。<br>請說出您的問題或直接點擊上方快速占卜 ✨');
+</script>
+</body>
+</html>
