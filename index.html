@@ -262,19 +262,43 @@ const ZS=[
   {n:'射手',s:'♐',d:'11/22-12/21'},{n:'摩羯',s:'♑',d:'12/22-1/19'},
   {n:'水瓶',s:'♒',d:'1/20-2/18'},{n:'雙魚',s:'♓',d:'2/19-3/20'}
 ];
+
 const SP=`妳是「古錐星命閣」的神秘命理師「九天玄女」，精通西洋占星、塔羅牌、中國八字命理、紫微斗數。
 
-【重要規則】
-一、全程只能輸出繁體中文。
-二、自稱「九天玄女」，稱用戶為「親愛的有緣人」。
-三、說話風格親切溫暖，像朋友一樣關心用戶，但帶有神秘感。多用「哦」「呢」「喔」「嗯」等親切語氣詞。
-四、適時加入✨🌙🔮⭐💫🌟符號。
-五、開頭引用一句神秘天象詩句，結尾給予溫暖祝福。
-六、若用戶選擇了特定星座，只針對該星座詳細解析，不要同時說12個星座。
-七、現在是2026年丙午年。`;
+【絕對禁令 - 最高優先級】
+一、全程只能輸出繁體中文。絕對禁止出現任何英文字母、拼音（如tài、gān、zhī等）、注音符號或其他非繁體中文字元。遇到任何詞彙都必須用繁體中文漢字表達。
+二、禁止自稱「玄女我」，只能自稱「九天玄女」。
+三、若用戶選擇了特定星座，只針對該星座詳細解析，絕對不要同時說其他星座的運勢。
+四、塔羅牌名稱只能用繁體中文，禁止出現任何英文牌名。
+五、八字命理術語只能用繁體中文漢字，禁止出現拼音。
+
+【說話風格】
+- 自稱「九天玄女」，稱用戶為「親愛的有緣人」
+- 說話親切溫暖，像朋友一樣關心用戶，但帶有神秘感
+- 多用「哦」「呢」「喔」「嗯」等親切語氣詞
+- 適時加入✨🌙🔮⭐💫🌟符號
+- 開頭引用一句神秘天象詩句，結尾給予溫暖祝福
+
+【星座運勢格式】
+🌟 守護星現況（三句分析）
+💕 愛情宮：金星火星分析、感情狀態、建議、桃花時機
+💼 事業宮：土星木星分析、機遇、貴人特質
+💰 財帛宮：財運分析、理財建議、幸運數字顏色
+💪 健康宮：注意部位、養生建議
+⭐ 幸運色／🔢 幸運數字／🕐 吉時方位
+📆 本週星象重點
+💫 命理箴言與祝福
+
+【總規則】
+現在是2026年丙午年，全程繁體中文漢字，內容詳細專業。`;
 
 let selZ='';
 let hist={zodiac:[],tarot:[],bazi:[],ziwei:[]};
+
+function fixText(txt){
+  const bad=/[a-zA-Z\u0080-\u024F]/g;
+  return txt.replace(bad,'');
+}
 
 function createStars(){
   const c=document.getElementById('stars');
@@ -339,11 +363,13 @@ async function callAI(msg,history){
     body:JSON.stringify({model:'llama-3.3-70b-versatile',messages,max_tokens:2000})
   });
   const d=await r.json();
-  return d.choices?.[0]?.message?.content||'九天玄女正在占卜中，請稍後再試✨';
+  let reply=d.choices?.[0]?.message?.content||'九天玄女正在占卜中，請稍後再試✨';
+  reply=fixText(reply);
+  return reply;
 }
 
 async function qSend(cid,txt){
-  const prefix=selZ&&cid==='zodiac'?'【用戶選擇的星座是'+selZ+'，請只針對'+selZ+'詳細解析，不要說其他星座】\n':'';
+  const prefix=selZ&&cid==='zodiac'?'【重要：用戶選擇的星座是'+selZ+'，請只針對'+selZ+'詳細解析，不要提及其他任何星座】\n':'';
   const fullTxt=prefix+txt;
   addMsg(cid,'user',txt);
   hist[cid].push({role:'user',content:fullTxt});
@@ -361,7 +387,7 @@ async function doSend(cid){
   const txt=inp.value.trim();
   if(!txt) return;
   inp.value='';
-  const prefix=selZ&&cid==='zodiac'?'【用戶選擇的星座是'+selZ+'】\n':'';
+  const prefix=selZ&&cid==='zodiac'?'【重要：用戶選擇的星座是'+selZ+'】\n':'';
   addMsg(cid,'user',txt);
   hist[cid].push({role:'user',content:prefix+txt});
   showTyping(cid);
@@ -382,7 +408,7 @@ renderZS();
 
 addMsg('zodiac','ai','「星月交輝，命途閃耀」✨<br><br>親愛的有緣人，歡迎來到古錐星命閣！😊<br>請選擇您的星座，九天玄女為您解析今日運勢 🌙');
 addMsg('tarot','ai','「牌影搖曳，天機乍現」🔮<br><br>親愛的有緣人，靜下心來喔～<br>九天玄女將為您抽出命運之牌，請說出您的問題 ✨');
-addMsg('bazi','ai','「八字藏天機，四柱定乾坤」🌟<br><br>親愛的有緣人，請告訴九天玄女您的出生年月日時喔！<br>例如：「1990年5月15日上午8點」😊');
+addMsg('bazi','ai','「八字藏天機，四柱定乾坤」🌟<br><br>親愛的有緣人，請告訴九天玄女您的出生年月日時喔！<br>例如：「一九九零年五月十五日上午八點」😊');
 addMsg('ziwei','ai','「紫微星耀，命運昭昭」✨<br><br>親愛的有緣人，請告訴九天玄女您的出生年月日時呢～<br>九天玄女將為您排出完整紫微命盤 🌙');
 </script>
 </body>
