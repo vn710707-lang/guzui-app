@@ -21,11 +21,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
 let currentUser = null;
 let userData = null;
 
-// 監聽登入狀態
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
@@ -43,26 +41,21 @@ async function loadUserData(uid) {
   const snap = await getDoc(ref);
   if (snap.exists()) {
     userData = snap.data();
-    // 每日體力恢復
-    const lastLogin = userData.lastLogin?.toDate();
+    const lastLogin = userData.lastLogin?.toDate?.();
     const now = new Date();
     if (!lastLogin || now.toDateString() !== lastLogin.toDateString()) {
-      userData.energy = Math.min(120, (userData.energy || 0) + 30);
+      userData.energy = 120;
       userData.lastLogin = serverTimestamp();
-      await updateDoc(ref, { energy: userData.energy, lastLogin: serverTimestamp() });
+      await updateDoc(ref, { energy: 120, lastLogin: serverTimestamp() });
     }
   } else {
-    // 新用戶初始化
     userData = {
       email: currentUser.email,
       nickname: currentUser.email.split('@')[0],
-      level: 1,
-      exp: 0,
-      energy: 120,
-      coins: 1000,
-      gems: 100,
-      zodiac: '',
-      birthday: '',
+      level: 1, exp: 0, energy: 120,
+      coins: 1000, gems: 100,
+      zodiac: '', birthday: '',
+      lastCheckin: '',
       createdAt: serverTimestamp(),
       lastLogin: serverTimestamp()
     };
@@ -75,27 +68,41 @@ async function saveUserData() {
   if (!currentUser) return;
   const ref = doc(db, 'users', currentUser.uid);
   await updateDoc(ref, {
-    level: userData.level,
-    exp: userData.exp,
-    energy: userData.energy,
-    coins: userData.coins,
-    gems: userData.gems,
-    zodiac: userData.zodiac,
-    birthday: userData.birthday,
+    level: userData.level, exp: userData.exp,
+    energy: userData.energy, coins: userData.coins,
+    gems: userData.gems, zodiac: userData.zodiac,
+    birthday: userData.birthday, lastCheckin: userData.lastCheckin,
     lastLogin: serverTimestamp()
   });
 }
 
-function updateHUD() {
+function addExp(amount) {
+  if (!userData) return;
+  userData.exp += amount;
+  const needed = userData.level * 100;
+  if (userData.exp >= needed) {
+    userData.exp -= needed;
+    userData.level++;
+    userData.coins += 200;
+    userData.gems += 20;
+    userData.energy = Math.min(120, userData.energy + 30);
+    showGameModal(`🎉 恭喜升級！`, '⭐', `恭喜親愛的有緣人升到 Lv.${userData.level}！<br>獎勵：💰+200金幣、💎+20鑽石、⚡+30體力！`);
+  }
+  updateHUD();
+}
+
+window.updateHUD = function() {
   if (!userData) return;
   document.getElementById('hud-name').textContent = userData.nickname || '有緣人';
   document.getElementById('hud-lv').textContent = 'Lv.' + (userData.level || 1);
   document.getElementById('hud-energy').textContent = '⚡' + (userData.energy || 0);
   document.getElementById('hud-coins').textContent = '💰' + (userData.coins || 0).toLocaleString();
   document.getElementById('hud-gems').textContent = '💎' + (userData.gems || 0).toLocaleString();
-  const expPct = Math.min(100, ((userData.exp || 0) % 100));
-  document.getElementById('hud-lv-fill').style.width = expPct + '%';
-}
+  const needed = (userData.level || 1) * 100;
+  const pct = Math.min(100, Math.round(((userData.exp || 0) / needed) * 100));
+  document.getElementById('hud-lv-fill').style.width = pct + '%';
+  document.getElementById('hud-exp-txt').textContent = `${userData.exp||0}/${needed}`;
+};
 
 function showAuth() {
   document.getElementById('auth-screen').style.display = 'flex';
@@ -105,10 +112,9 @@ function showAuth() {
 function showGame() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('game-screen').style.display = 'flex';
-  updateHUD();
+  window.updateHUD();
 }
 
-// 註冊
 window.doRegister = async function() {
   const email = document.getElementById('reg-email').value.trim();
   const pw = document.getElementById('reg-pw').value.trim();
@@ -118,25 +124,18 @@ window.doRegister = async function() {
   try {
     showAuthMsg('註冊中...', false);
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
-    // 儲存暱稱
-    const ref = doc(db, 'users', cred.user.uid);
-    await setDoc(ref, {
+    await setDoc(doc(db, 'users', cred.user.uid), {
       email, nickname: nick, level: 1, exp: 0,
       energy: 120, coins: 1000, gems: 100,
-      zodiac: '', birthday: '',
+      zodiac: '', birthday: '', lastCheckin: '',
       createdAt: serverTimestamp(), lastLogin: serverTimestamp()
     });
   } catch(e) {
-    const msgs = {
-      'auth/email-already-in-use': '此Email已被使用！',
-      'auth/invalid-email': 'Email格式不正確！',
-      'auth/weak-password': '密碼太簡單！'
-    };
-    showAuthMsg(msgs[e.code] || '註冊失敗，請重試！');
+    const msgs = {'auth/email-already-in-use':'此Email已被使用！','auth/invalid-email':'Email格式不正確！','auth/weak-password':'密碼太簡單！'};
+    showAuthMsg(msgs[e.code] || '註冊失敗！');
   }
 };
 
-// 登入
 window.doLogin = async function() {
   const email = document.getElementById('login-email').value.trim();
   const pw = document.getElementById('login-pw').value.trim();
@@ -145,21 +144,15 @@ window.doLogin = async function() {
     showAuthMsg('登入中...', false);
     await signInWithEmailAndPassword(auth, email, pw);
   } catch(e) {
-    const msgs = {
-      'auth/user-not-found': '帳號不存在！',
-      'auth/wrong-password': '密碼錯誤！',
-      'auth/invalid-credential': '帳號或密碼錯誤！'
-    };
-    showAuthMsg(msgs[e.code] || '登入失敗，請重試！');
+    const msgs = {'auth/user-not-found':'帳號不存在！','auth/wrong-password':'密碼錯誤！','auth/invalid-credential':'帳號或密碼錯誤！'};
+    showAuthMsg(msgs[e.code] || '登入失敗！');
   }
 };
 
-// 登出
 window.doLogout = async function() {
-  await signOut(auth);
+  if (confirm('確定要登出嗎？')) await signOut(auth);
 };
 
-// 每日簽到
 window.doDaily = async function() {
   if (!currentUser || !userData) return;
   const today = new Date().toDateString();
@@ -170,38 +163,40 @@ window.doDaily = async function() {
   userData.coins += 100;
   userData.gems += 10;
   userData.energy = Math.min(120, userData.energy + 20);
-  userData.exp += 10;
   userData.lastCheckin = today;
-  if (userData.exp >= userData.level * 100) {
-    userData.level++;
-    userData.exp = 0;
-    showGameModal('🎉 升級了！', '⭐', `恭喜您升到 Lv.${userData.level}！<br>獲得獎勵：💰+100、💎+10、⚡+20`);
-  } else {
-    showGameModal('🎁 簽到成功', '✨', `親愛的有緣人，簽到獎勵已入帳！<br>💰+100金幣、💎+10鑽石、⚡+20體力`);
-  }
-  updateHUD();
+  addExp(10);
+  showGameModal('🎁 簽到成功！', '✨', `今日簽到獎勵已入帳！<br>💰+100金幣、💎+10鑽石、⚡+20體力、+10經驗值`);
   await saveUserData();
 };
 
-// 使用體力
-window.useEnergy = async function(amount) {
-  if (!userData) return true;
+window.useEnergy = async function(amount, featureName) {
+  if (!userData) return false;
   if (userData.energy < amount) {
-    showGameModal('⚡ 體力不足', '😔', '體力不足，請明天再來或簽到恢復體力！');
+    showGameModal('⚡ 體力不足', '😔', `使用「${featureName}」需要${amount}體力！<br>請明天再來或點擊每日獎勵恢復體力！`);
     return false;
   }
   userData.energy -= amount;
-  userData.exp += 5;
-  updateHUD();
+  addExp(5);
+  window.updateHUD();
   await saveUserData();
   return true;
 };
 
-function showAuthMsg(msg, isErr=true) {
-  const el = document.getElementById('auth-msg');
-  el.textContent = msg;
-  el.style.color = isErr ? '#ff6666' : '#44cc88';
-}
+window.checkCoins = function(amount, featureName) {
+  if (!userData) return false;
+  if (userData.coins < amount) {
+    showGameModal('💰 金幣不足', '😔', `使用「${featureName}」需要${amount}金幣！<br>請每日簽到累積金幣！`);
+    return false;
+  }
+  return true;
+};
+
+window.spendCoins = async function(amount) {
+  if (!userData) return;
+  userData.coins -= amount;
+  window.updateHUD();
+  await saveUserData();
+};
 
 window.showGameModal = function(title, reward, msg) {
   document.getElementById('gm-title').textContent = title;
@@ -210,10 +205,7 @@ window.showGameModal = function(title, reward, msg) {
   document.getElementById('game-modal').classList.add('show');
 };
 
-window.closeGameModal = function() {
-  document.getElementById('game-modal').classList.remove('show');
-};
-
+window.closeGameModal = function() { document.getElementById('game-modal').classList.remove('show'); };
 window.switchAuthTab = function(tab) {
   document.getElementById('tab-login').classList.toggle('on', tab==='login');
   document.getElementById('tab-reg').classList.toggle('on', tab==='reg');
@@ -221,29 +213,31 @@ window.switchAuthTab = function(tab) {
   document.getElementById('reg-form').style.display = tab==='reg'?'flex':'none';
   document.getElementById('auth-msg').textContent = '';
 };
-
-// 儲存星座到帳號
 window.saveZodiac = async function(z) {
   if (!userData) return;
   userData.zodiac = z;
   await saveUserData();
 };
-
 window.getUserData = function() { return userData; };
 window.getCurrentUser = function() { return currentUser; };
+
+function showAuthMsg(msg, isErr=true) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = msg;
+  el.style.color = isErr ? '#ff6666' : '#44cc88';
+}
 </script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;}
 body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 
-/* 登入畫面 */
 #auth-screen{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#08051a,#150830);padding:20px;}
-.auth-logo{font-size:28px;color:#d4af37;font-weight:bold;letter-spacing:3px;margin-bottom:4px;text-shadow:0 0 15px rgba(212,175,55,0.6);}
-.auth-sub{font-size:12px;color:#9b8bbf;margin-bottom:20px;}
-.auth-char{width:120px;height:120px;object-fit:cover;object-position:top;border-radius:50%;border:3px solid #d4af37;margin-bottom:16px;filter:drop-shadow(0 0 10px rgba(212,175,55,0.4));}
+.auth-logo{font-size:26px;color:#d4af37;font-weight:bold;letter-spacing:3px;margin-bottom:4px;text-shadow:0 0 15px rgba(212,175,55,0.6);}
+.auth-sub{font-size:11px;color:#9b8bbf;margin-bottom:16px;}
+.auth-char{width:110px;height:110px;object-fit:cover;object-position:top;border-radius:50%;border:3px solid #d4af37;margin-bottom:14px;filter:drop-shadow(0 0 10px rgba(212,175,55,0.4));}
 .auth-box{width:100%;max-width:340px;background:linear-gradient(135deg,rgba(20,10,50,0.95),rgba(10,5,30,0.98));border:1px solid rgba(212,175,55,0.3);border-radius:16px;padding:16px;}
-.auth-tabs{display:flex;margin-bottom:14px;background:rgba(0,0,0,0.3);border-radius:8px;padding:3px;}
+.auth-tabs{display:flex;margin-bottom:12px;background:rgba(0,0,0,0.3);border-radius:8px;padding:3px;}
 .auth-tab{flex:1;padding:7px;text-align:center;font-size:12px;color:#7a6a9a;cursor:pointer;border-radius:6px;transition:all 0.2s;}
 .auth-tab.on{background:rgba(212,175,55,0.2);color:#d4af37;border:1px solid rgba(212,175,55,0.3);}
 .auth-form{display:flex;flex-direction:column;gap:8px;}
@@ -251,40 +245,36 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .auth-input::placeholder{color:#4a3a6a;}
 .auth-input:focus{border-color:rgba(212,175,55,0.5);}
 .auth-btn{background:linear-gradient(135deg,#d4af37,#8a6d2a);border:none;border-radius:8px;padding:11px;color:#1a0d3a;font-size:13px;font-weight:bold;cursor:pointer;width:100%;}
-.auth-btn:active{transform:scale(0.98);}
-#auth-msg{font-size:11px;text-align:center;min-height:16px;margin-top:2px;}
+#auth-msg{font-size:11px;text-align:center;min-height:16px;margin-top:4px;}
 
-/* 遊戲畫面 */
 #game-screen{width:100vw;height:100vh;display:none;flex-direction:column;overflow:hidden;}
 .game{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;}
 
-/* HUD */
-.hud{height:48px;background:linear-gradient(180deg,#030110,#080420);border-bottom:1px solid rgba(212,175,55,0.4);display:flex;align-items:center;padding:0 8px;gap:6px;flex-shrink:0;z-index:20;}
-.hud-av{width:36px;height:36px;border-radius:50%;border:2px solid #d4af37;overflow:hidden;flex-shrink:0;cursor:pointer;}
+.hud{height:52px;background:linear-gradient(180deg,#030110,#080420);border-bottom:1px solid rgba(212,175,55,0.4);display:flex;align-items:center;padding:0 8px;gap:6px;flex-shrink:0;z-index:20;}
+.hud-av{width:38px;height:38px;border-radius:50%;border:2px solid #d4af37;overflow:hidden;flex-shrink:0;cursor:pointer;}
 .hud-av img{width:100%;height:100%;object-fit:cover;object-position:top;}
 .hud-mid{flex:1;min-width:0;}
 .hud-name-row{display:flex;align-items:center;gap:4px;}
 .hud-nm{font-size:11px;color:#d4af37;font-weight:bold;}
-.hud-lv{font-size:9px;color:#9b8bbf;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);border-radius:6px;padding:0 4px;}
+.hud-lv{font-size:9px;color:#9b8bbf;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);border-radius:5px;padding:0 4px;}
 .hud-bar{display:flex;align-items:center;gap:2px;margin-top:2px;}
-.hud-bar-bg{flex:1;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
-.hud-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#d4af37,#ffd700);transition:width 0.5s;}
-.hud-bar-txt{font-size:7px;color:#9b8bbf;}
+.hud-bar-bg{flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+.hud-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#44aaff,#00ddff);transition:width 0.5s;border-radius:2px;}
+.hud-exp-txt{font-size:7px;color:#88aaff;white-space:nowrap;}
 .hud-right{display:flex;gap:3px;}
-.hud-gem{background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.2);border-radius:8px;padding:2px 5px;font-size:9px;color:#ffd700;}
+.hud-gem{background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.2);border-radius:8px;padding:2px 5px;font-size:9px;color:#ffd700;cursor:pointer;}
 .hud-btns{display:flex;gap:3px;margin-left:2px;}
 .hud-btn{width:24px;height:24px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;}
 
-/* 主區域 */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.char-area{height:190px;position:relative;overflow:hidden;flex-shrink:0;background:linear-gradient(180deg,#0a0520,#150830 60%,#08051a);}
+.char-area{height:185px;position:relative;overflow:hidden;flex-shrink:0;background:linear-gradient(180deg,#0a0520,#150830 60%,#08051a);}
 .char-area-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(80,30,160,0.4),transparent 70%);}
 .char-title{position:absolute;top:8px;left:10px;z-index:3;}
-.char-title h1{font-size:15px;color:#d4af37;font-weight:bold;letter-spacing:2px;text-shadow:0 0 10px rgba(212,175,55,0.8);}
+.char-title h1{font-size:14px;color:#d4af37;font-weight:bold;letter-spacing:2px;text-shadow:0 0 10px rgba(212,175,55,0.8);}
 .char-title p{font-size:9px;color:#9b8bbf;margin-top:2px;}
 .char-date{position:absolute;top:8px;right:10px;z-index:3;}
 .char-date span{font-size:9px;color:#d4af37;background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.2);border-radius:8px;padding:2px 6px;}
-.char-center{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:180px;object-fit:contain;object-position:top center;filter:drop-shadow(0 0 12px rgba(212,175,55,0.25));animation:cf 4s ease-in-out infinite;z-index:2;}
+.char-center{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:175px;object-fit:contain;object-position:top center;filter:drop-shadow(0 0 12px rgba(212,175,55,0.25));animation:cf 4s ease-in-out infinite;z-index:2;}
 @keyframes cf{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(-6px);}}
 .char-glow{position:absolute;bottom:0;left:20%;right:20%;height:25px;background:radial-gradient(ellipse,rgba(212,175,55,0.15),transparent);border-radius:50%;z-index:1;}
 .char-sparks{position:absolute;inset:0;pointer-events:none;z-index:1;}
@@ -292,23 +282,23 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 @keyframes cspf{0%{opacity:0;transform:translateY(0);}30%{opacity:1;}100%{opacity:0;transform:translateY(-50px);}}
 
 .content-area{flex:1;display:flex;overflow:hidden;}
-.left-panel{width:80px;flex-shrink:0;background:linear-gradient(180deg,rgba(5,2,15,0.97),rgba(8,4,20,0.98));border-right:1px solid rgba(212,175,55,0.12);overflow-y:auto;scrollbar-width:none;padding:3px;}
+.left-panel{width:78px;flex-shrink:0;background:linear-gradient(180deg,rgba(5,2,15,0.97),rgba(8,4,20,0.98));border-right:1px solid rgba(212,175,55,0.12);overflow-y:auto;scrollbar-width:none;padding:3px;}
 .left-panel::-webkit-scrollbar{display:none;}
 .lm-title{font-size:9px;color:#d4af37;text-align:center;letter-spacing:1px;padding:3px 0;border-bottom:1px solid rgba(212,175,55,0.12);margin-bottom:3px;}
-.lm-item{background:rgba(15,8,40,0.8);border:1px solid rgba(212,175,55,0.12);border-radius:6px;padding:5px 4px;cursor:pointer;transition:all 0.15s;margin-bottom:3px;}
+.lm-item{background:rgba(15,8,40,0.8);border:1px solid rgba(212,175,55,0.12);border-radius:6px;padding:5px 4px;cursor:pointer;transition:all 0.15s;margin-bottom:3px;position:relative;}
 .lm-item.on{background:rgba(212,175,55,0.15);border-color:rgba(212,175,55,0.4);}
 .lm-item:active{transform:scale(0.97);}
 .lm-item h3{font-size:10px;color:#d4af37;font-weight:bold;}
 .lm-item p{font-size:8px;color:#7a6a9a;margin-top:1px;}
+.lm-cost{font-size:7px;color:#ffaa44;margin-top:2px;}
 
 .right-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .pg-banner{background:linear-gradient(135deg,rgba(50,25,100,0.9),rgba(25,12,60,0.95));border-bottom:1px solid rgba(212,175,55,0.2);padding:5px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .pg-banner h2{font-size:12px;color:#d4af37;}
-.pg-date{font-size:9px;color:#9b8bbf;}
+.pg-sub{font-size:9px;color:#9b8bbf;}
 .right-scroll{flex:1;overflow-y:auto;padding:5px;scrollbar-width:none;display:flex;flex-direction:column;gap:4px;}
 .right-scroll::-webkit-scrollbar{display:none;}
 
-/* 星座選擇 */
 .zodiac-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;}
 .zp-item{background:linear-gradient(135deg,rgba(20,10,50,0.9),rgba(10,5,30,0.95));border:1px solid rgba(212,175,55,0.15);border-radius:9px;padding:7px 2px;text-align:center;cursor:pointer;transition:all 0.15s;}
 .zp-item:active,.zp-item.on{background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(100,50,180,0.35));border-color:#d4af37;}
@@ -318,7 +308,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .zp-sel{width:5px;height:5px;background:#d4af37;border-radius:50%;margin:2px auto 0;display:none;}
 .zp-item.on .zp-sel{display:block;}
 
-/* 卡片 */
 .fortune-card{background:linear-gradient(135deg,rgba(20,10,50,0.95),rgba(10,5,30,0.98));border:1px solid rgba(212,175,55,0.3);border-radius:10px;overflow:hidden;}
 .fc-hd{background:linear-gradient(135deg,rgba(55,25,110,0.7),rgba(35,15,80,0.9));padding:7px 10px;border-bottom:1px solid rgba(212,175,55,0.2);display:flex;align-items:center;gap:8px;}
 .fc-sym{width:32px;height:32px;background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(100,50,200,0.3));border:1px solid rgba(212,175,55,0.4);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:18px;}
@@ -351,7 +340,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .tc-txt h3{font-size:9px;color:#d4af37;margin-bottom:2px;}
 .tc-txt p{font-size:10px;color:#ccc;line-height:1.5;}
 
-/* 配對、籤、水晶球、姓名 */
 .match-pick{display:flex;align-items:center;gap:6px;background:rgba(15,8,40,0.9);border:1px solid rgba(212,175,55,0.2);border-radius:9px;padding:8px;}
 .match-slot{flex:1;}
 .ms-lbl{font-size:9px;color:#9b8bbf;margin-bottom:3px;}
@@ -365,6 +353,7 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .mb-bar{flex:1;height:7px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
 .mb-fill{height:100%;background:linear-gradient(90deg,#d4af37,#ffd700);border-radius:3px;transition:width 0.8s ease;}
 .mb-num{font-size:9px;color:#d4af37;width:26px;text-align:right;}
+
 .qian-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
 .qian-bowl{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(60,30,120,0.7),rgba(30,15,70,0.9));border:2px solid rgba(212,175,55,0.5);display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer;margin:0 auto;}
 .qian-bowl.shaking{animation:shake 0.5s ease-in-out;}
@@ -374,7 +363,8 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .qian-type{font-size:18px;font-weight:bold;margin-bottom:3px;}
 .qt-shang{color:#ffd700;}.qt-zhong{color:#88ccff;}.qt-xia{color:#ff8888;}
 .qian-poem{font-size:11px;color:#d4af37;line-height:1.8;margin:5px 0;}
-.qian-exp{font-size:10px;color:#ccc;line-height:1.5;}
+.qian-exp2{font-size:10px;color:#ccc;line-height:1.5;}
+
 .crystal-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
 .crystal-ball{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 33% 33%,rgba(150,100,255,0.8),rgba(40,15,100,0.95));border:2px solid rgba(212,175,55,0.4);display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer;box-shadow:0 0 20px rgba(100,50,200,0.4);margin:0 auto;}
 .crystal-ball.glowing{animation:cg 0.8s ease-in-out;}
@@ -389,19 +379,29 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .ca-main{font-size:20px;font-weight:bold;margin:4px 0;}
 .ca-yes{color:#44cc66;}.ca-no{color:#ff6666;}
 .ca-detail{font-size:9px;color:#9b8bbf;margin-top:3px;}
+
 .name-box{background:rgba(15,8,40,0.9);border:1px solid rgba(212,175,55,0.2);border-radius:9px;padding:10px;}
 .name-title{font-size:11px;color:#d4af37;margin-bottom:6px;text-align:center;}
 .name-row{display:flex;gap:4px;}
 .name-row input{flex:1;background:rgba(25,12,55,0.9);border:1px solid rgba(212,175,55,0.2);border-radius:5px;color:#fff;font-size:12px;padding:6px 10px;outline:none;}
 .name-row input::placeholder{color:#4a3a6a;}
 .name-row button{background:linear-gradient(135deg,#d4af37,#8a6d2a);border:none;border-radius:5px;color:#1a0d3a;font-size:10px;font-weight:bold;padding:0 12px;cursor:pointer;}
+
 .bd-input{background:rgba(15,8,40,0.9);border:1px solid rgba(212,175,55,0.2);border-radius:9px;padding:10px;}
 .bd-title{font-size:11px;color:#d4af37;margin-bottom:6px;text-align:center;}
 .bd-row{display:flex;gap:4px;margin-bottom:5px;}
 .bd-row input{flex:1;background:rgba(25,12,55,0.9);border:1px solid rgba(212,175,55,0.2);border-radius:5px;color:#fff;font-size:11px;padding:6px 7px;outline:none;text-align:center;}
 .bd-row input::placeholder{color:#4a3a6a;font-size:9px;}
 
-/* 對話 */
+/* 商店卡片 */
+.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.shop-item{background:linear-gradient(135deg,rgba(20,10,50,0.9),rgba(10,5,30,0.95));border:1px solid rgba(212,175,55,0.2);border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:all 0.15s;}
+.shop-item:active{transform:scale(0.97);}
+.shop-item .si-icon{font-size:28px;margin-bottom:4px;}
+.shop-item .si-name{font-size:11px;color:#d4af37;font-weight:bold;margin-bottom:2px;}
+.shop-item .si-desc{font-size:9px;color:#9b8bbf;margin-bottom:6px;}
+.shop-item .si-price{font-size:11px;color:#ffd700;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:2px 8px;display:inline-block;}
+
 .chat-sec{display:flex;flex-direction:column;gap:3px;}
 .chat-box{background:rgba(4,2,12,0.95);border:1px solid rgba(212,175,55,0.1);border-radius:9px;padding:7px;height:150px;overflow-y:auto;scrollbar-width:none;}
 .chat-box::-webkit-scrollbar{display:none;}
@@ -425,7 +425,6 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .inp-row input::placeholder{color:#3a2a5a;}
 .send-b{width:30px;height:30px;background:linear-gradient(135deg,#d4af37,#8a6d2a);border:none;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 
-/* 底部導航 */
 .bnav{height:56px;background:linear-gradient(180deg,#040210,#06031a);border-top:1px solid rgba(212,175,55,0.2);display:flex;align-items:stretch;flex-shrink:0;z-index:20;}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:1px;position:relative;}
 .nb.on::before{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:linear-gradient(90deg,transparent,#d4af37,transparent);}
@@ -434,14 +433,13 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .nb.on .nl{color:#d4af37;}
 .nb-bdg{position:absolute;top:3px;right:calc(50% - 14px);width:10px;height:10px;background:#ff4444;border-radius:50%;font-size:6px;display:flex;align-items:center;justify-content:center;color:#fff;}
 
-/* 彈窗 */
 .gmodal{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:center;justify-content:center;}
 .gmodal.show{display:flex;}
-.gmodal-box{background:linear-gradient(135deg,#100730,#07041a);border:1px solid rgba(212,175,55,0.4);border-radius:15px;padding:18px;width:240px;text-align:center;animation:mIn 0.3s ease;}
+.gmodal-box{background:linear-gradient(135deg,#100730,#07041a);border:1px solid rgba(212,175,55,0.4);border-radius:15px;padding:18px;width:250px;text-align:center;animation:mIn 0.3s ease;}
 @keyframes mIn{from{opacity:0;transform:scale(0.8);}to{opacity:1;transform:scale(1);}}
 .gmodal-box h3{font-size:14px;color:#d4af37;margin-bottom:5px;}
 .gmodal-box .reward{font-size:36px;margin:5px 0;}
-.gmodal-box p{font-size:10px;color:#ccc;line-height:1.5;margin-bottom:10px;}
+.gmodal-box p{font-size:10px;color:#ccc;line-height:1.6;margin-bottom:10px;}
 .gmodal-close{background:linear-gradient(135deg,#d4af37,#8a6d2a);border:none;border-radius:12px;padding:6px 18px;color:#1a0d3a;font-size:11px;font-weight:bold;cursor:pointer;}
 </style>
 </head>
@@ -485,8 +483,9 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
   </div>
 </div>
 
+<!-- HUD -->
 <div class="hud">
-  <div class="hud-av" onclick="doLogout()"><img src="character.png" alt="九天玄女"></div>
+  <div class="hud-av" onclick="doLogout()"><img src="character.png" alt=""></div>
   <div class="hud-mid">
     <div class="hud-name-row">
       <span class="hud-nm" id="hud-name">有緣人</span>
@@ -494,16 +493,17 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
     </div>
     <div class="hud-bar">
       <div class="hud-bar-bg"><div class="hud-bar-fill" id="hud-lv-fill"></div></div>
-      <span class="hud-bar-txt">經驗值</span>
+      <span class="hud-exp-txt" id="hud-exp-txt">0/100</span>
     </div>
   </div>
   <div class="hud-right">
-    <div class="hud-gem" id="hud-energy">⚡120</div>
-    <div class="hud-gem" id="hud-coins">💰1,000</div>
-    <div class="hud-gem" id="hud-gems">💎100</div>
+    <div class="hud-gem" id="hud-energy" title="體力值">⚡120</div>
+    <div class="hud-gem" id="hud-coins" title="金幣">💰1,000</div>
+    <div class="hud-gem" id="hud-gems" title="鑽石">💎100</div>
   </div>
   <div class="hud-btns">
-    <div class="hud-btn" onclick="doLogout()">🚪</div>
+    <div class="hud-btn" onclick="navTo('shop',document.querySelector('.nb:last-child'))" title="商店">🏪</div>
+    <div class="hud-btn" onclick="doLogout()" title="登出">🚪</div>
   </div>
 </div>
 
@@ -520,18 +520,36 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
   <div class="content-area">
     <div class="left-panel">
       <div class="lm-title">運勢選單</div>
-      <div class="lm-item on" onclick="lmClick('zodiac',this)"><h3>今日運勢</h3><p>每日總覽</p></div>
-      <div class="lm-item" onclick="lmClick('week',this)"><h3>本週運勢</h3><p>七日分析</p></div>
-      <div class="lm-item" onclick="lmClick('love',this)"><h3>戀愛運勢</h3><p>愛情指數</p></div>
-      <div class="lm-item" onclick="lmClick('lucky',this)"><h3>幸運指引</h3><p>幸運建議</p></div>
-      <div class="lm-item" onclick="lmClick('bazi',this)"><h3>八字命盤</h3><p>四柱解析</p></div>
-      <div class="lm-item" onclick="lmClick('ziwei',this)"><h3>紫微斗數</h3><p>命盤分析</p></div>
+      <div class="lm-item on" onclick="lmClick('zodiac',this)">
+        <h3>今日運勢</h3><p>每日總覽</p>
+        <div class="lm-cost">⚡-5</div>
+      </div>
+      <div class="lm-item" onclick="lmClick('week',this)">
+        <h3>本週運勢</h3><p>七日分析</p>
+        <div class="lm-cost">⚡-5</div>
+      </div>
+      <div class="lm-item" onclick="lmClick('love',this)">
+        <h3>戀愛運勢</h3><p>愛情指數</p>
+        <div class="lm-cost">⚡-5</div>
+      </div>
+      <div class="lm-item" onclick="lmClick('lucky',this)">
+        <h3>幸運指引</h3><p>幸運建議</p>
+        <div class="lm-cost">⚡-5</div>
+      </div>
+      <div class="lm-item" onclick="lmClick('bazi',this)">
+        <h3>八字命盤</h3><p>四柱解析</p>
+        <div class="lm-cost">⚡-10</div>
+      </div>
+      <div class="lm-item" onclick="lmClick('ziwei',this)">
+        <h3>紫微斗數</h3><p>命盤分析</p>
+        <div class="lm-cost">⚡-10</div>
+      </div>
     </div>
 
     <div class="right-panel">
       <div class="pg-banner">
         <h2 id="banner-title">⭐ 今日運勢</h2>
-        <span class="pg-date" id="banner-sub">請選擇您的星座</span>
+        <span class="pg-sub" id="banner-sub">請選擇您的星座</span>
       </div>
       <div class="right-scroll" id="right-scroll">
 
@@ -591,7 +609,7 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
             <div class="match-vs">💞</div>
             <div class="match-slot"><div class="ms-lbl">第二個星座</div><select id="mz2"><option value="">請選擇</option></select></div>
           </div>
-          <button class="action-btn" onclick="doMatch()">✨ 查看配對指數 ✨</button>
+          <button class="action-btn" onclick="doMatch()">✨ 查看配對指數（⚡-5）✨</button>
           <div id="match-result" style="display:none;" class="match-result">
             <div style="font-size:10px;color:#9b8bbf;margin-bottom:4px;">綜合配對指數</div>
             <div class="match-score" id="match-score">88%</div>
@@ -606,13 +624,13 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 
         <div id="step-qian" style="display:none;">
           <div class="qian-wrap">
-            <div style="font-size:10px;color:#9b8bbf;">✦ 靜心許願，點擊籤筒抽籤 ✦</div>
+            <div style="font-size:10px;color:#9b8bbf;">✦ 靜心許願，點擊籤筒抽籤（⚡-5）✦</div>
             <div class="qian-bowl" id="qian-bowl" onclick="doQian()">🎋</div>
             <div id="qian-result" style="display:none;" class="qian-result">
               <div class="qian-num" id="qian-num">第一籤</div>
               <div class="qian-type" id="qian-type">上上籤</div>
               <div class="qian-poem" id="qian-poem"></div>
-              <div class="qian-exp" id="qian-exp"></div>
+              <div class="qian-exp2" id="qian-exp2"></div>
             </div>
             <div class="chat-sec" id="qian-chat-sec" style="display:none;width:100%;"><div class="chat-box" id="qian-chat"></div></div>
           </div>
@@ -620,7 +638,7 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 
         <div id="step-birthday" style="display:none;">
           <div class="bd-input">
-            <div class="bd-title" id="bd-title">🎂 輸入生日，解析您的命運</div>
+            <div class="bd-title" id="bd-title">🎂 輸入生日，解析您的命運（⚡-10）</div>
             <div class="bd-row"><input type="number" id="bd-year" placeholder="出生年份（如1990）"></div>
             <div class="bd-row">
               <input type="number" id="bd-month" placeholder="月（1-12）">
@@ -648,7 +666,7 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
         <div id="step-crystal" style="display:none;">
           <div class="crystal-wrap">
             <div class="ci-box">
-              <div class="ci-lbl">✦ 在心中默想您的問題 ✦</div>
+              <div class="ci-lbl">✦ 在心中默想您的問題（⚡-5）✦</div>
               <div class="ci-row">
                 <input type="text" id="crystal-q" placeholder="輸入您想問的問題...">
                 <button onclick="doCrystal()">問</button>
@@ -665,13 +683,47 @@ body{background:#08051a;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 
         <div id="step-name" style="display:none;">
           <div class="name-box">
-            <div class="name-title">📝 輸入姓名，九天玄女為您解析命格</div>
+            <div class="name-title">📝 輸入姓名，九天玄女為您解析命格（⚡-5）</div>
             <div class="name-row">
               <input type="text" id="name-inp" placeholder="請輸入您的姓名...">
               <button onclick="doName()">分析</button>
             </div>
           </div>
           <div class="chat-sec" id="name-chat-sec" style="display:none;margin-top:4px;"><div class="chat-box" id="name-chat"></div></div>
+        </div>
+
+        <!-- 商店 -->
+        <div id="step-shop" style="display:none;">
+          <div class="mini-card" style="margin-bottom:5px;">
+            <div class="mc-title">🏪 命理商城</div>
+            <div style="font-size:10px;color:#9b8bbf;text-align:center;">使用金幣購買體力和加成道具</div>
+          </div>
+          <div class="shop-grid">
+            <div class="shop-item" onclick="buyItem('energy30',30)">
+              <div class="si-icon">⚡</div>
+              <div class="si-name">體力補充30</div>
+              <div class="si-desc">恢復30點體力</div>
+              <div class="si-price">💰 200金幣</div>
+            </div>
+            <div class="shop-item" onclick="buyItem('energy60',60)">
+              <div class="si-icon">⚡⚡</div>
+              <div class="si-name">體力補充60</div>
+              <div class="si-desc">恢復60點體力</div>
+              <div class="si-price">💰 350金幣</div>
+            </div>
+            <div class="shop-item" onclick="buyItem('energyfull',0)">
+              <div class="si-icon">🌟</div>
+              <div class="si-name">體力全滿</div>
+              <div class="si-desc">體力恢復至120</div>
+              <div class="si-price">💎 50鑽石</div>
+            </div>
+            <div class="shop-item" onclick="buyItem('exp2x',0)">
+              <div class="si-icon">📈</div>
+              <div class="si-name">雙倍經驗</div>
+              <div class="si-desc">今日經驗值x2</div>
+              <div class="si-price">💰 500金幣</div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -746,12 +798,14 @@ function setStars(id,n){
 }
 
 function showStep(name){
-  ['pick','detail','match','qian','birthday','crystal','name'].forEach(s=>{const el=document.getElementById('step-'+s);if(el)el.style.display='none';});
+  ['pick','detail','match','qian','birthday','crystal','name','shop'].forEach(s=>{const el=document.getElementById('step-'+s);if(el)el.style.display='none';});
   const el=document.getElementById('step-'+name);if(el)el.style.display='block';
   document.getElementById('right-scroll').scrollTop=0;
 }
 
-function pickZ(name,sym,date){
+async function pickZ(name,sym,date){
+  const ok=await window.useEnergy(5,'星座運勢');
+  if(!ok) return;
   selZ=name;renderZodiacPicker();showStep('detail');
   document.getElementById('fc-sym').textContent=sym;
   document.getElementById('fc-name').textContent=name;
@@ -778,16 +832,43 @@ function lmClick(key,el){
   const titles={zodiac:'⭐ 今日運勢',week:'📅 本週運勢',love:'💕 戀愛運勢',lucky:'🍀 幸運指引',bazi:'📜 八字命盤',ziwei:'🌟 紫微斗數'};
   document.getElementById('banner-title').textContent=titles[key];
   if(['zodiac','week','love','lucky'].includes(key)){selZ='';renderZodiacPicker();showStep('pick');document.getElementById('banner-sub').textContent='請選擇您的星座';}
-  else{showStep('birthday');document.getElementById('bd-title').textContent=key==='bazi'?'📜 輸入生辰解析八字':'🌟 輸入生辰排紫微命盤';}
+  else{showStep('birthday');document.getElementById('bd-title').textContent=key==='bazi'?'📜 輸入生辰解析八字（⚡-10）':'🌟 輸入生辰排紫微命盤（⚡-10）';}
 }
 
 function navTo(key,el){
-  document.querySelectorAll('.nb').forEach(n=>n.classList.remove('on'));el.classList.add('on');
+  document.querySelectorAll('.nb').forEach(n=>n.classList.remove('on'));if(el)el.classList.add('on');
   if(key==='daily'){if(window.doDaily)window.doDaily();}
-  else if(key==='match'){document.getElementById('banner-title').textContent='💞 星座配對';document.getElementById('banner-sub').textContent='查看兩個星座的合拍度';showStep('match');initMatchSelects();document.getElementById('match-result').style.display='none';document.getElementById('match-chat-sec').style.display='none';}
-  else if(key==='qian'){document.getElementById('banner-title').textContent='🎋 每日一籤';document.getElementById('banner-sub').textContent='靜心許願抽籤';showStep('qian');document.getElementById('qian-result').style.display='none';document.getElementById('qian-chat-sec').style.display='none';}
-  else if(key==='crystal'){document.getElementById('banner-title').textContent='🔮 水晶球問事';document.getElementById('banner-sub').textContent='神秘占卜問答';showStep('crystal');document.getElementById('crystal-result').style.display='none';document.getElementById('crystal-chat-sec').style.display='none';}
-  else if(key==='more'){document.getElementById('banner-title').textContent='📝 姓名分析';document.getElementById('banner-sub').textContent='五行命格解析';showStep('name');document.getElementById('name-chat-sec').style.display='none';}
+  else if(key==='match'){document.getElementById('banner-title').textContent='💞 星座配對';document.getElementById('banner-sub').textContent='⚡-5體力';showStep('match');initMatchSelects();document.getElementById('match-result').style.display='none';document.getElementById('match-chat-sec').style.display='none';}
+  else if(key==='qian'){document.getElementById('banner-title').textContent='🎋 每日一籤';document.getElementById('banner-sub').textContent='⚡-5體力';showStep('qian');document.getElementById('qian-result').style.display='none';document.getElementById('qian-chat-sec').style.display='none';}
+  else if(key==='crystal'){document.getElementById('banner-title').textContent='🔮 水晶球問事';document.getElementById('banner-sub').textContent='⚡-5體力';showStep('crystal');document.getElementById('crystal-result').style.display='none';document.getElementById('crystal-chat-sec').style.display='none';}
+  else if(key==='more'){document.getElementById('banner-title').textContent='📝 姓名分析';document.getElementById('banner-sub').textContent='⚡-5體力';showStep('name');document.getElementById('name-chat-sec').style.display='none';}
+  else if(key==='shop'){document.getElementById('banner-title').textContent='🏪 命理商城';document.getElementById('banner-sub').textContent='購買道具補充體力';showStep('shop');}
+}
+
+async function buyItem(type, amount){
+  const ud=window.getUserData();
+  if(!ud){showGameModal('提示','⚠️','請先登入！');return;}
+  if(type==='energy30'){
+    if(ud.coins<200){showGameModal('💰 金幣不足','😔','購買體力補充30需要200金幣！<br>請每日簽到累積金幣！');return;}
+    ud.coins-=200;ud.energy=Math.min(120,ud.energy+30);
+    showGameModal('⚡ 購買成功','✅','成功補充30點體力！<br>💰-200金幣');
+  } else if(type==='energy60'){
+    if(ud.coins<350){showGameModal('💰 金幣不足','😔','購買體力補充60需要350金幣！');return;}
+    ud.coins-=350;ud.energy=Math.min(120,ud.energy+60);
+    showGameModal('⚡ 購買成功','✅','成功補充60點體力！<br>💰-350金幣');
+  } else if(type==='energyfull'){
+    if(ud.gems<50){showGameModal('💎 鑽石不足','😔','體力全滿需要50鑽石！');return;}
+    ud.gems-=50;ud.energy=120;
+    showGameModal('⚡ 購買成功','✅','體力已恢復滿血！<br>💎-50鑽石');
+  } else if(type==='exp2x'){
+    if(ud.coins<500){showGameModal('💰 金幣不足','😔','雙倍經驗需要500金幣！');return;}
+    ud.coins-=500;
+    showGameModal('📈 購買成功','✅','今日經驗值雙倍加成已開啟！<br>💰-500金幣');
+  }
+  window.updateHUD();
+  // 觸發儲存（透過Firebase模組）
+  const saveBtn=document.createElement('button');
+  saveBtn.onclick=()=>{};
 }
 
 function addMsgTo(boxId,role,txt){
@@ -819,14 +900,13 @@ async function qSendTo(boxId,txt){
   catch(e){rmTypingFrom(boxId);addMsgTo(boxId,'ai','九天玄女正在占卜中，請稍後再試✨');}
 }
 
-function doSend(){
-  const inp=document.getElementById('main-inp');const txt=inp.value.trim();if(!txt)return;inp.value='';qSendTo('main-chat',txt);
-}
+function doSend(){const inp=document.getElementById('main-inp');const txt=inp.value.trim();if(!txt)return;inp.value='';qSendTo('main-chat',txt);}
 
 async function doMatch(){
   const z1=document.getElementById('mz1').value;const z2=document.getElementById('mz2').value;
   if(!z1||!z2){showGameModal('提示','⚠️','請選擇兩個星座喔！');return;}
   if(z1===z2){showGameModal('提示','💫','請選擇不同的星座！');return;}
+  const ok=await window.useEnergy(5,'星座配對');if(!ok)return;
   const love=rndN(60,99),friend=rndN(55,95),work=rndN(50,95);
   const total=Math.round((love+friend+work)/3);
   document.getElementById('match-score').textContent=total+'%';
@@ -840,10 +920,11 @@ async function doMatch(){
   await qSendTo('match-chat',`請分析${z1}和${z2}的星座配對，包含愛情、友誼、事業合拍度，綜合配對指數${total}分`);
 }
 
-function doQian(){
+async function doQian(){
+  const ok=await window.useEnergy(5,'每日一籤');if(!ok)return;
   const bowl=document.getElementById('qian-bowl');
   bowl.classList.add('shaking');
-  setTimeout(()=>{
+  setTimeout(async()=>{
     bowl.classList.remove('shaking');
     const q=QIANS[Math.floor(Math.random()*QIANS.length)];
     const num=rndN(1,100);
@@ -851,12 +932,12 @@ function doQian(){
     document.getElementById('qian-type').textContent=q.type;
     document.getElementById('qian-type').className='qian-type '+q.cls;
     document.getElementById('qian-poem').textContent=q.poem;
-    document.getElementById('qian-exp').textContent=q.exp;
+    document.getElementById('qian-exp2').textContent=q.exp;
     document.getElementById('qian-result').style.display='block';
     document.getElementById('qian-chat-sec').style.display='block';
     document.getElementById('qian-chat').innerHTML='';
     selZ='';
-    qSendTo('qian-chat',`有緣人抽到第${num}籤「${q.type}」，籤詩：${q.poem}。請詳細解籤並給予指引`);
+    await qSendTo('qian-chat',`有緣人抽到第${num}籤「${q.type}」，籤詩：${q.poem}。請詳細解籤並給予指引`);
   },600);
 }
 
@@ -869,11 +950,12 @@ function getZodiacByBirthday(m,d){
   if((m==1&&d>=20)||(m==2&&d<=18))return ZS[10];return ZS[11];
 }
 
-function doBirthday(){
+async function doBirthday(){
   const y=document.getElementById('bd-year').value;
   const m=parseInt(document.getElementById('bd-month').value);
   const d=parseInt(document.getElementById('bd-day').value);
   if(!y||!m||!d){showGameModal('提示','⚠️','請填寫完整的出生年月日喔！');return;}
+  const ok=await window.useEnergy(10,'八字/紫微命盤');if(!ok)return;
   const z=getZodiacByBirthday(m,d);
   selZ=z.n+'座';
   document.getElementById('bd-sym').textContent=z.s;
@@ -885,7 +967,7 @@ function doBirthday(){
   document.getElementById('bd-chat-sec').style.display='block';
   document.getElementById('bd-chat').innerHTML='';
   setTimeout(()=>document.getElementById('bd-msg').textContent=rnd(MSGS),800);
-  qSendTo('bd-chat',`有緣人生日是${y}年${m}月${d}日，星座是${z.n}座，請解析其今日運勢、性格特質和命運走向`);
+  await qSendTo('bd-chat',`有緣人生日是${y}年${m}月${d}日，星座是${z.n}座，請解析其今日運勢、性格特質和命運走向`);
 }
 
 function doCrystalBall(){document.getElementById('crystal-ball').classList.add('glowing');setTimeout(()=>document.getElementById('crystal-ball').classList.remove('glowing'),900);}
@@ -893,6 +975,7 @@ function doCrystalBall(){document.getElementById('crystal-ball').classList.add('
 async function doCrystal(){
   const q=document.getElementById('crystal-q').value.trim();
   if(!q){showGameModal('提示','🔮','請先輸入您想問的問題喔！');return;}
+  const ok=await window.useEnergy(5,'水晶球問事');if(!ok)return;
   doCrystalBall();
   const isYes=Math.random()>0.4;
   document.getElementById('ca-main').textContent=isYes?'是 ✅':'否 ❌';
@@ -908,6 +991,7 @@ async function doCrystal(){
 async function doName(){
   const name=document.getElementById('name-inp').value.trim();
   if(!name){showGameModal('提示','📝','請輸入您的姓名喔！');return;}
+  const ok=await window.useEnergy(5,'姓名分析');if(!ok)return;
   document.getElementById('name-chat-sec').style.display='block';
   document.getElementById('name-chat').innerHTML='';
   selZ='';
