@@ -808,7 +808,8 @@ document.getElementById('crystal-q').addEventListener('keypress',e=>{if(e.key===
 document.getElementById('name-inp').addEventListener('keypress',e=>{if(e.key==='Enter')doName();});
 document.getElementById('login-pw').addEventListener('keypress',e=>{if(e.key==='Enter')window.doLogin();});
 
-initCS();renderLM();updateBanner();activateMenu(CHARS[0].menus[0]);
+initCS();renderLM();updateBanner();
+setTimeout(()=>{activateMenu(CHARS[0].menus[0]);renderZP();},300);
 </script>
 </body>
 </html>
