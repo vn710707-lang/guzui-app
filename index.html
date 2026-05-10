@@ -17,7 +17,7 @@ async function saveUD(){if(!currentUser)return;await updateDoc(doc(db,'users',cu
 function addExp(amt){if(!userData)return;userData.exp+=amt;const need=userData.level*100;if(userData.exp>=need){userData.exp-=need;userData.level++;userData.coins+=200;userData.gems+=20;userData.energy=Math.min(120,userData.energy+30);const um={5:'☯️ 太上老君已解鎖！',10:'💕 月老已解鎖！',15:'⚔️ 關聖帝君已解鎖！',20:'🌟 土地公已解鎖！'};if(um[userData.level])showGM(`🎉 恭喜升到 Lv.${userData.level}！`,'🌟',`恭喜升級！獎勵：💰+200、💎+20、⚡+30<br><br>${um[userData.level]}`);else showGM(`🎉 恭喜升級！`,'⭐',`恭喜您升到 Lv.${userData.level}！<br>獎勵：💰+200、💎+20、⚡+30`);if(window.refreshCS)window.refreshCS();}window.updateHUD();}
 window.updateHUD=function(){if(!userData)return;document.getElementById('hud-name').textContent=userData.nickname||'有緣人';document.getElementById('hud-lv').textContent='Lv.'+(userData.level||1);document.getElementById('hud-energy').textContent='⚡'+(userData.energy||0);document.getElementById('hud-coins').textContent='💰'+(userData.coins||0).toLocaleString();document.getElementById('hud-gems').textContent='💎'+(userData.gems||0).toLocaleString();const need=(userData.level||1)*100,pct=Math.min(100,Math.round(((userData.exp||0)/need)*100));document.getElementById('hud-lv-fill').style.width=pct+'%';document.getElementById('hud-exp-txt').textContent=`${userData.exp||0}/${need}`;};
 function showAuth(){document.getElementById('auth-screen').style.display='flex';document.getElementById('game-screen').style.display='none';}
-function showGame(){document.getElementById('auth-screen').style.display='none';document.getElementById('game-screen').style.display='flex';window.updateHUD();if(window.refreshCS)window.refreshCS();}
+function showGame(){document.getElementById('auth-screen').style.display='none';document.getElementById('game-screen').style.display='flex';window.updateHUD();if(window.refreshCS)window.refreshCS();setTimeout(()=>{renderZP();},100);}
 window.doRegister=async function(){const email=document.getElementById('reg-email').value.trim(),pw=document.getElementById('reg-pw').value.trim(),nick=document.getElementById('reg-nick').value.trim();if(!email||!pw||!nick){showAuthMsg('請填寫所有欄位！');return;}if(pw.length<6){showAuthMsg('密碼至少6位數！');return;}try{showAuthMsg('註冊中...',false);const cred=await createUserWithEmailAndPassword(auth,email,pw);await setDoc(doc(db,'users',cred.user.uid),{email,nickname:nick,level:1,exp:0,energy:120,coins:1000,gems:100,zodiac:'',birthday:'',lastCheckin:'',createdAt:serverTimestamp(),lastLogin:serverTimestamp()});}catch(e){showAuthMsg({'auth/email-already-in-use':'此Email已被使用！','auth/invalid-email':'Email格式不正確！','auth/weak-password':'密碼太簡單！'}[e.code]||'註冊失敗！');}};
 window.doLogin=async function(){const email=document.getElementById('login-email').value.trim(),pw=document.getElementById('login-pw').value.trim();if(!email||!pw){showAuthMsg('請填寫Email和密碼！');return;}try{showAuthMsg('登入中...',false);await signInWithEmailAndPassword(auth,email,pw);}catch(e){showAuthMsg({'auth/user-not-found':'帳號不存在！','auth/wrong-password':'密碼錯誤！','auth/invalid-credential':'帳號或密碼錯誤！'}[e.code]||'登入失敗！');}};
 window.doLogout=async function(){if(confirm('確定要登出嗎？'))await signOut(auth);};
@@ -35,10 +35,7 @@ function showAuthMsg(msg,isErr=true){const el=document.getElementById('auth-msg'
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;}
 body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
-
-/* ===== 登入畫面 ===== */
 #auth-screen{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#2d1b69 0%,#1a0d40 40%,#0d1a40 100%);padding:20px;}
-.auth-bg-stars{position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(100,80,200,0.3),transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(212,175,55,0.15),transparent 50%);pointer-events:none;}
 .auth-logo{font-size:26px;color:#ffd700;font-weight:bold;letter-spacing:3px;margin-bottom:4px;text-shadow:0 2px 15px rgba(212,175,55,0.8);}
 .auth-sub{font-size:12px;color:#c4a8ff;margin-bottom:16px;}
 .auth-char{width:110px;height:110px;object-fit:cover;object-position:top;border-radius:50%;border:3px solid #d4af37;margin-bottom:16px;box-shadow:0 0 25px rgba(212,175,55,0.5);}
@@ -47,20 +44,14 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;color:#9b8bbf;cursor:pointer;border-radius:8px;transition:all 0.2s;font-weight:bold;}
 .auth-tab.on{background:linear-gradient(135deg,#d4af37,#a07820);color:#1a0d3a;}
 .auth-form{display:flex;flex-direction:column;gap:10px;}
-.ai{background:rgba(255,255,255,0.1);border:1.5px solid rgba(212,175,55,0.3);border-radius:10px;padding:11px 14px;color:#fff;font-size:13px;outline:none;width:100%;transition:border 0.2s;}
-.ai::placeholder{color:#9b8bbf;}
-.ai:focus{border-color:#d4af37;background:rgba(255,255,255,0.15);}
-.auth-btn{background:linear-gradient(135deg,#d4af37,#8a5e1a);border:none;border-radius:10px;padding:12px;color:#1a0d3a;font-size:14px;font-weight:bold;cursor:pointer;width:100%;box-shadow:0 4px 15px rgba(212,175,55,0.4);transition:transform 0.1s;}
-.auth-btn:active{transform:scale(0.98);}
+.ai{background:rgba(255,255,255,0.1);border:1.5px solid rgba(212,175,55,0.3);border-radius:10px;padding:11px 14px;color:#fff;font-size:13px;outline:none;width:100%;}
+.ai::placeholder{color:#9b8bbf;} .ai:focus{border-color:#d4af37;}
+.auth-btn{background:linear-gradient(135deg,#d4af37,#8a5e1a);border:none;border-radius:10px;padding:12px;color:#1a0d3a;font-size:14px;font-weight:bold;cursor:pointer;width:100%;}
 #auth-msg{font-size:11px;text-align:center;min-height:18px;margin-top:5px;}
-
-/* ===== 遊戲畫面 ===== */
 #game-screen{width:100vw;height:100vh;display:none;flex-direction:column;overflow:hidden;}
 .game{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(180deg,#1e1040 0%,#251550 50%,#1a1035 100%);}
-
-/* ===== HUD ===== */
-.hud{height:52px;background:linear-gradient(180deg,rgba(15,8,40,0.98),rgba(25,12,55,0.95));border-bottom:2px solid rgba(212,175,55,0.5);display:flex;align-items:center;padding:0 10px;gap:8px;flex-shrink:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,0.5);}
-.hud-av{width:38px;height:38px;border-radius:50%;border:2px solid #d4af37;overflow:hidden;flex-shrink:0;cursor:pointer;box-shadow:0 0 10px rgba(212,175,55,0.4);}
+.hud{height:52px;background:linear-gradient(180deg,rgba(15,8,40,0.98),rgba(25,12,55,0.95));border-bottom:2px solid rgba(212,175,55,0.5);display:flex;align-items:center;padding:0 10px;gap:8px;flex-shrink:0;z-index:20;}
+.hud-av{width:38px;height:38px;border-radius:50%;border:2px solid #d4af37;overflow:hidden;flex-shrink:0;cursor:pointer;}
 .hud-av img{width:100%;height:100%;object-fit:cover;object-position:top;}
 .hud-mid{flex:1;min-width:0;}
 .hud-nr{display:flex;align-items:center;gap:5px;}
@@ -74,29 +65,21 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .hud-g{background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:3px 6px;font-size:9px;color:#ffd700;font-weight:bold;}
 .hud-bs{display:flex;gap:4px;margin-left:2px;}
 .hud-b{width:26px;height:26px;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.35);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;}
-
-/* ===== 主區域 ===== */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-
-/* ===== 角色切換列 ===== */
 .char-switcher{height:80px;background:linear-gradient(180deg,rgba(20,10,50,0.95),rgba(30,15,65,0.9));border-bottom:1px solid rgba(212,175,55,0.2);display:flex;align-items:center;padding:0 8px;gap:6px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
 .char-switcher::-webkit-scrollbar{display:none;}
 .cs-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:5px 7px;border-radius:12px;border:1.5px solid transparent;transition:all 0.2s;}
-.cs-item.on{background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(100,60,200,0.2));border-color:#d4af37;box-shadow:0 0 12px rgba(212,175,55,0.3);}
+.cs-item.on{background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(100,60,200,0.2));border-color:#d4af37;}
 .cs-item.locked{opacity:0.45;cursor:not-allowed;}
 .cs-av{width:44px;height:44px;border-radius:50%;border:2px solid rgba(212,175,55,0.4);overflow:hidden;position:relative;}
 .cs-av img{width:100%;height:100%;object-fit:cover;object-position:top;}
-.cs-item.on .cs-av{border-color:#ffd700;box-shadow:0 0 8px rgba(212,175,55,0.5);}
+.cs-item.on .cs-av{border-color:#ffd700;}
 .cs-item.locked .cs-av::after{content:'🔒';position:absolute;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;font-size:16px;border-radius:50%;}
 .cs-name{font-size:10px;color:#e2d5ff;white-space:nowrap;font-weight:bold;}
 .cs-item.on .cs-name{color:#ffd700;}
 .cs-unlock{font-size:8px;color:#f97316;white-space:nowrap;}
 .cs-unlocked{font-size:8px;color:#4ade80;white-space:nowrap;}
-
-/* ===== 內容區 ===== */
 .content-area{flex:1;display:flex;overflow:hidden;}
-
-/* ===== 左側選單 ===== */
 .left-panel{width:78px;flex-shrink:0;background:linear-gradient(180deg,rgba(15,8,40,0.97),rgba(20,10,50,0.98));border-right:1px solid rgba(212,175,55,0.2);overflow-y:auto;scrollbar-width:none;padding:4px;}
 .left-panel::-webkit-scrollbar{display:none;}
 .lm-hd{font-size:10px;color:#ffd700;text-align:center;padding:4px 0;border-bottom:1px solid rgba(212,175,55,0.2);margin-bottom:4px;letter-spacing:1px;font-weight:bold;}
@@ -106,21 +89,19 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .lm-item h3{font-size:10px;color:#ffd700;font-weight:bold;}
 .lm-item p{font-size:8px;color:#c4b5e8;margin-top:1px;}
 .lm-cost{font-size:8px;color:#fb923c;margin-top:2px;font-weight:bold;}
-
-/* ===== 右側內容 ===== */
 .right-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .pg-banner{border-bottom:1px solid rgba(212,175,55,0.25);padding:7px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;background:linear-gradient(135deg,rgba(80,40,160,0.7),rgba(40,20,90,0.9));}
-.pg-cav{width:30px;height:30px;border-radius:50%;border:1.5px solid #ffd700;overflow:hidden;flex-shrink:0;box-shadow:0 0 8px rgba(212,175,55,0.4);}
+.pg-cav{width:30px;height:30px;border-radius:50%;border:1.5px solid #ffd700;overflow:hidden;flex-shrink:0;}
 .pg-cav img{width:100%;height:100%;object-fit:cover;object-position:top;}
 .pg-banner h2{font-size:13px;color:#ffd700;flex:1;font-weight:bold;}
 .pg-sub{font-size:9px;color:#c4b5e8;}
 .right-scroll{flex:1;overflow-y:auto;padding:8px;scrollbar-width:none;display:flex;flex-direction:column;gap:6px;}
 .right-scroll::-webkit-scrollbar{display:none;}
 
-/* ===== 星座選擇 ===== */
-.pick-title{font-size:12px;color:#ffd700;text-align:center;margin-bottom:6px;font-weight:bold;letter-spacing:1px;}
+/* 星座選擇 */
+.pick-title{font-size:12px;color:#ffd700;text-align:center;margin-bottom:8px;font-weight:bold;letter-spacing:1px;}
 .zodiac-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
-.zp-item{background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;padding:8px 3px;text-align:center;cursor:pointer;transition:all 0.15s;}
+.zp-item{background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;padding:8px 3px;text-align:center;cursor:pointer;transition:all 0.15s;}
 .zp-item:active,.zp-item.on{background:linear-gradient(135deg,rgba(212,175,55,0.3),rgba(120,60,200,0.3));border-color:#ffd700;transform:scale(0.97);}
 .zp-s{font-size:22px;margin-bottom:3px;}
 .zp-n{font-size:11px;color:#ffd700;font-weight:bold;}
@@ -128,8 +109,7 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .zp-dot{width:6px;height:6px;background:#ffd700;border-radius:50%;margin:3px auto 0;display:none;}
 .zp-item.on .zp-dot{display:block;}
 
-/* ===== 運勢卡 ===== */
-.fortune-card{background:rgba(255,255,255,0.07);border:1.5px solid rgba(212,175,55,0.35);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.fortune-card{background:rgba(255,255,255,0.07);border:1.5px solid rgba(212,175,55,0.35);border-radius:14px;overflow:hidden;}
 .fc-hd{padding:10px 12px;border-bottom:1px solid rgba(212,175,55,0.2);display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(100,50,200,0.4),rgba(60,20,120,0.5));}
 .fc-sym{width:38px;height:38px;background:linear-gradient(135deg,rgba(212,175,55,0.3),rgba(150,80,255,0.4));border:1.5px solid #d4af37;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
 .fc-info h3{font-size:14px;color:#ffd700;font-weight:bold;}
@@ -139,37 +119,29 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .fr{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
 .fr-lbl{font-size:11px;color:#c4b5e8;width:38px;flex-shrink:0;}
 .fr-stars{display:flex;gap:2px;}
-.fr-star{font-size:14px;color:#ffd700;text-shadow:0 0 5px rgba(255,215,0,0.5);}
+.fr-star{font-size:14px;color:#ffd700;}
 .fr-star.off{color:rgba(255,255,255,0.15);}
-
-/* ===== 通用小卡 ===== */
-.mini-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:10px 12px;box-shadow:0 2px 10px rgba(0,0,0,0.2);}
+.mini-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:10px 12px;}
 .mc-title{font-size:11px;color:#ffd700;text-align:center;margin-bottom:7px;letter-spacing:1px;font-weight:bold;}
 .lucky-row{display:flex;justify-content:space-around;}
-.li{text-align:center;}
-.li-lbl{font-size:9px;color:#c4b5e8;margin-bottom:2px;}
-.li-val{font-size:13px;color:#ffd700;font-weight:bold;}
-.yiji-row{display:flex;gap:8px;}
-.yiji-col{flex:1;}
+.li{text-align:center;} .li-lbl{font-size:9px;color:#c4b5e8;margin-bottom:2px;} .li-val{font-size:13px;color:#ffd700;font-weight:bold;}
+.yiji-row{display:flex;gap:8px;} .yiji-col{flex:1;}
 .yiji-badge{font-size:10px;padding:2px 8px;border-radius:5px;margin-bottom:4px;display:inline-block;font-weight:bold;}
 .yi-b{background:rgba(74,222,128,0.2);color:#4ade80;border:1px solid rgba(74,222,128,0.4);}
 .ji-b{background:rgba(248,113,113,0.2);color:#f87171;border:1px solid rgba(248,113,113,0.4);}
 .yiji-tags{display:flex;flex-wrap:wrap;gap:3px;}
 .yiji-tag{font-size:10px;color:#e2d5ff;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 6px;}
 .teacher-row{display:flex;gap:8px;align-items:flex-start;}
-.tc-av{width:34px;height:34px;border-radius:50%;border:1.5px solid #ffd700;overflow:hidden;flex-shrink:0;box-shadow:0 0 8px rgba(212,175,55,0.3);}
+.tc-av{width:34px;height:34px;border-radius:50%;border:1.5px solid #ffd700;overflow:hidden;flex-shrink:0;}
 .tc-av img{width:100%;height:100%;object-fit:cover;object-position:top;}
-.tc-txt h3{font-size:10px;color:#ffd700;margin-bottom:3px;font-weight:bold;}
-.tc-txt p{font-size:11px;color:#e2d5ff;line-height:1.6;}
+.tc-txt h3{font-size:10px;color:#ffd700;margin-bottom:3px;font-weight:bold;} .tc-txt p{font-size:11px;color:#e2d5ff;line-height:1.6;}
 
-/* ===== 塔羅牌 ===== */
+/* 塔羅 */
 .tarot-section{display:flex;flex-direction:column;gap:8px;}
 .tarot-mode-btns{display:flex;gap:6px;}
 .tarot-mode-btn{flex:1;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px 4px;text-align:center;cursor:pointer;transition:all 0.2s;}
 .tarot-mode-btn.on{background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(120,60,200,0.25));border-color:#ffd700;}
-.tmb-icon{font-size:18px;margin-bottom:2px;}
-.tmb-name{font-size:10px;color:#ffd700;font-weight:bold;}
-.tmb-desc{font-size:8px;color:#fb923c;margin-top:1px;}
+.tmb-icon{font-size:18px;margin-bottom:2px;} .tmb-name{font-size:10px;color:#ffd700;font-weight:bold;} .tmb-desc{font-size:8px;color:#fb923c;margin-top:1px;}
 .tarot-draw-area{background:rgba(255,255,255,0.06);border:1.5px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;text-align:center;}
 .tarot-hint{font-size:11px;color:#c4b5e8;margin-bottom:12px;}
 .tarot-cards-row{display:flex;justify-content:center;gap:10px;margin-bottom:12px;min-height:120px;align-items:center;}
@@ -178,39 +150,35 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .tarot-card.flipped .tarot-card-inner{transform:rotateY(180deg);}
 .tarot-card.reversed .tarot-card-inner{transform:rotateY(180deg) rotateZ(180deg);}
 .tarot-card-back,.tarot-card-front{position:absolute;inset:0;backface-visibility:hidden;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;}
-.tarot-card-back{background:linear-gradient(135deg,#3b0764,#1e1b4b);border:2px solid rgba(212,175,55,0.5);box-shadow:0 4px 15px rgba(0,0,0,0.5);font-size:30px;}
-.tarot-card-front{background:linear-gradient(135deg,#4c1d95,#1e1b4b);border:2px solid #d4af37;transform:rotateY(180deg);padding:5px;box-shadow:0 4px 15px rgba(0,0,0,0.5);}
+.tarot-card-back{background:linear-gradient(135deg,#3b0764,#1e1b4b);border:2px solid rgba(212,175,55,0.5);font-size:30px;}
+.tarot-card-front{background:linear-gradient(135deg,#4c1d95,#1e1b4b);border:2px solid #d4af37;transform:rotateY(180deg);padding:5px;}
 .tarot-card-front .tc-emoji{font-size:26px;margin-bottom:4px;}
 .tarot-card-front .tc-name{font-size:9px;color:#ffd700;font-weight:bold;text-align:center;line-height:1.2;}
 .tarot-card-front .tc-pos{font-size:8px;margin-top:3px;font-weight:bold;}
-.tc-pos.normal{color:#4ade80;}
-.tc-pos.reversed{color:#f97316;}
-.tarot-draw-btn{background:linear-gradient(135deg,rgba(212,175,55,0.3),rgba(120,60,200,0.4));border:1.5px solid #d4af37;border-radius:12px;padding:11px;color:#ffd700;font-size:13px;font-weight:bold;cursor:pointer;width:100%;box-shadow:0 4px 12px rgba(212,175,55,0.2);}
-.tarot-draw-btn:active{transform:scale(0.98);}
+.tc-pos.normal{color:#4ade80;} .tc-pos.reversed{color:#f97316;}
+.tarot-draw-btn{background:linear-gradient(135deg,rgba(212,175,55,0.3),rgba(120,60,200,0.4));border:1.5px solid #d4af37;border-radius:12px;padding:11px;color:#ffd700;font-size:13px;font-weight:bold;cursor:pointer;width:100%;}
 .tarot-result{background:rgba(255,255,255,0.06);border:1px solid rgba(212,175,55,0.25);border-radius:12px;padding:12px;}
 .tr-title{font-size:12px;color:#ffd700;margin-bottom:8px;text-align:center;font-weight:bold;}
 .tr-card-info{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:10px;padding:8px 10px;margin-bottom:6px;}
 .tr-emoji{font-size:24px;flex-shrink:0;}
-.tr-info h3{font-size:12px;color:#ffd700;font-weight:bold;}
-.tr-info p{font-size:10px;color:#c4b5e8;margin-top:2px;line-height:1.4;}
+.tr-info h3{font-size:12px;color:#ffd700;font-weight:bold;} .tr-info p{font-size:10px;color:#c4b5e8;margin-top:2px;line-height:1.4;}
 .tr-pos{font-size:10px;margin-top:3px;font-weight:bold;}
 
-/* ===== 配對 ===== */
+/* 配對 */
 .match-pick{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:10px;}
-.match-slot{flex:1;}
-.ms-lbl{font-size:10px;color:#c4b5e8;margin-bottom:4px;font-weight:bold;}
+.match-slot{flex:1;} .ms-lbl{font-size:10px;color:#c4b5e8;margin-bottom:4px;font-weight:bold;}
 .match-slot select{width:100%;background:rgba(30,15,60,0.9);border:1.5px solid rgba(212,175,55,0.3);border-radius:8px;color:#ffd700;font-size:11px;padding:6px 8px;outline:none;}
 .match-vs{font-size:18px;color:#f472b6;flex-shrink:0;}
-.action-btn{width:100%;background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(120,60,200,0.35));border:1.5px solid #d4af37;border-radius:10px;color:#ffd700;font-size:12px;font-weight:bold;padding:10px;cursor:pointer;margin-top:6px;box-shadow:0 3px 10px rgba(212,175,55,0.2);}
+.action-btn{width:100%;background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(120,60,200,0.35));border:1.5px solid #d4af37;border-radius:10px;color:#ffd700;font-size:12px;font-weight:bold;padding:10px;cursor:pointer;margin-top:6px;}
 .match-result{background:rgba(255,255,255,0.07);border:1.5px solid rgba(212,175,55,0.35);border-radius:12px;padding:12px;text-align:center;}
-.match-score{font-size:36px;font-weight:bold;color:#ffd700;margin:6px 0;text-shadow:0 0 15px rgba(255,215,0,0.5);}
+.match-score{font-size:36px;font-weight:bold;color:#ffd700;margin:6px 0;}
 .mb-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
 .mb-lbl{font-size:11px;color:#c4b5e8;width:34px;font-weight:bold;}
 .mb-bar{flex:1;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;}
 .mb-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:4px;transition:width 0.8s ease;}
 .mb-num{font-size:10px;color:#ffd700;width:28px;text-align:right;font-weight:bold;}
 
-/* ===== 籤 ===== */
+/* 籤 */
 .qian-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
 .qian-bowl{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,rgba(120,60,200,0.6),rgba(60,20,120,0.8));border:2.5px solid #d4af37;display:flex;align-items:center;justify-content:center;font-size:38px;cursor:pointer;margin:0 auto;box-shadow:0 0 20px rgba(212,175,55,0.3);}
 .qian-bowl.shaking{animation:shake 0.5s ease-in-out;}
@@ -218,17 +186,15 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .qian-result{width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(212,175,55,0.35);border-radius:12px;padding:12px;text-align:center;}
 .qian-num{font-size:11px;color:#c4b5e8;margin-bottom:4px;}
 .qian-type{font-size:20px;font-weight:bold;margin-bottom:4px;}
-.qt-s{color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,0.5);}
-.qt-m{color:#93c5fd;}
-.qt-x{color:#f87171;}
+.qt-s{color:#fbbf24;} .qt-m{color:#93c5fd;} .qt-x{color:#f87171;}
 .qian-poem{font-size:12px;color:#ffd700;line-height:1.9;margin:6px 0;font-weight:bold;}
 .qian-exp{font-size:11px;color:#e2d5ff;line-height:1.6;}
 
-/* ===== 水晶球 ===== */
+/* 水晶球 */
 .crystal-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
-.crystal-ball{width:100px;height:100px;border-radius:50%;background:radial-gradient(circle at 33% 33%,rgba(167,139,250,0.9),rgba(79,38,180,0.95));border:2.5px solid rgba(212,175,55,0.6);display:flex;align-items:center;justify-content:center;font-size:44px;cursor:pointer;box-shadow:0 0 25px rgba(139,92,246,0.5),0 0 50px rgba(139,92,246,0.2);margin:0 auto;}
+.crystal-ball{width:100px;height:100px;border-radius:50%;background:radial-gradient(circle at 33% 33%,rgba(167,139,250,0.9),rgba(79,38,180,0.95));border:2.5px solid rgba(212,175,55,0.6);display:flex;align-items:center;justify-content:center;font-size:44px;cursor:pointer;box-shadow:0 0 25px rgba(139,92,246,0.5);margin:0 auto;}
 .crystal-ball.glowing{animation:cg 0.8s ease-in-out;}
-@keyframes cg{0%,100%{box-shadow:0 0 25px rgba(139,92,246,0.5);}50%{box-shadow:0 0 50px rgba(167,139,250,0.9),0 0 80px rgba(212,175,55,0.6);}}
+@keyframes cg{0%,100%{box-shadow:0 0 25px rgba(139,92,246,0.5);}50%{box-shadow:0 0 60px rgba(167,139,250,0.9),0 0 80px rgba(212,175,55,0.6);}}
 .ci-box{width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:10px;}
 .ci-lbl{font-size:10px;color:#c4b5e8;margin-bottom:5px;text-align:center;font-weight:bold;}
 .ci-row{display:flex;gap:6px;}
@@ -237,46 +203,35 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .ci-btn{background:linear-gradient(135deg,#d4af37,#8a5e1a);border:none;border-radius:8px;color:#1a0d3a;font-size:11px;font-weight:bold;padding:0 14px;cursor:pointer;}
 .crystal-ans{width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(212,175,55,0.35);border-radius:12px;padding:12px;text-align:center;}
 .ca-main{font-size:24px;font-weight:bold;margin:5px 0;}
-.ca-yes{color:#4ade80;text-shadow:0 0 10px rgba(74,222,128,0.5);}
-.ca-no{color:#f87171;text-shadow:0 0 10px rgba(248,113,113,0.5);}
+.ca-yes{color:#4ade80;} .ca-no{color:#f87171;}
 .ca-detail{font-size:10px;color:#c4b5e8;margin-top:4px;}
 
-/* ===== 姓名 ===== */
-.name-box{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px;}
-.name-title{font-size:12px;color:#ffd700;margin-bottom:8px;text-align:center;font-weight:bold;}
+/* 姓名/生日 */
+.name-box,.bd-box{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px;}
+.name-title,.bd-title{font-size:12px;color:#ffd700;margin-bottom:8px;text-align:center;font-weight:bold;}
 .name-row{display:flex;gap:6px;}
 .name-inp{flex:1;background:rgba(30,15,60,0.9);border:1.5px solid rgba(212,175,55,0.3);border-radius:8px;color:#fff;font-size:13px;padding:8px 12px;outline:none;}
 .name-inp::placeholder{color:#9b8bbf;}
 .name-btn{background:linear-gradient(135deg,#d4af37,#8a5e1a);border:none;border-radius:8px;color:#1a0d3a;font-size:11px;font-weight:bold;padding:0 14px;cursor:pointer;}
-
-/* ===== 生日 ===== */
-.bd-box{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px;}
-.bd-title{font-size:12px;color:#ffd700;margin-bottom:8px;text-align:center;font-weight:bold;}
 .bd-row{display:flex;gap:6px;margin-bottom:6px;}
 .bd-inp{flex:1;background:rgba(30,15,60,0.9);border:1.5px solid rgba(212,175,55,0.3);border-radius:8px;color:#fff;font-size:12px;padding:8px;outline:none;text-align:center;}
 .bd-inp::placeholder{color:#9b8bbf;font-size:9px;}
 
-/* ===== 商城 ===== */
+/* 商城 */
 .shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
 .shop-item{background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:all 0.15s;}
 .shop-item:active{transform:scale(0.97);border-color:#ffd700;}
-.si-icon{font-size:28px;margin-bottom:5px;}
-.si-name{font-size:12px;color:#ffd700;font-weight:bold;margin-bottom:3px;}
-.si-desc{font-size:10px;color:#c4b5e8;margin-bottom:7px;}
+.si-icon{font-size:28px;margin-bottom:5px;} .si-name{font-size:12px;color:#ffd700;font-weight:bold;margin-bottom:3px;} .si-desc{font-size:10px;color:#c4b5e8;margin-bottom:7px;}
 .si-price{font-size:11px;color:#ffd700;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:3px 10px;display:inline-block;font-weight:bold;}
 .unlock-progress{background:rgba(255,255,255,0.06);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:12px;margin-bottom:6px;}
 .up-title{font-size:12px;color:#ffd700;text-align:center;margin-bottom:10px;letter-spacing:1px;font-weight:bold;}
 .up-item{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:8px 10px;background:rgba(255,255,255,0.06);border-radius:10px;}
 .up-av{width:36px;height:36px;border-radius:50%;overflow:hidden;border:1.5px solid rgba(212,175,55,0.4);flex-shrink:0;}
 .up-av img{width:100%;height:100%;object-fit:cover;object-position:top;}
-.up-info{flex:1;}
-.up-name{font-size:11px;color:#ffd700;font-weight:bold;}
-.up-req{font-size:9px;color:#c4b5e8;margin-top:1px;}
-.up-status{font-size:10px;font-weight:bold;}
-.up-ok{color:#4ade80;}
-.up-no{color:#f97316;}
+.up-info{flex:1;} .up-name{font-size:11px;color:#ffd700;font-weight:bold;} .up-req{font-size:9px;color:#c4b5e8;margin-top:1px;}
+.up-status{font-size:10px;font-weight:bold;} .up-ok{color:#4ade80;} .up-no{color:#f97316;}
 
-/* ===== 對話 ===== */
+/* 對話 */
 .chat-sec{display:flex;flex-direction:column;gap:4px;}
 .chat-box{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:8px;height:160px;overflow-y:auto;scrollbar-width:none;}
 .chat-box::-webkit-scrollbar{display:none;}
@@ -290,27 +245,22 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .cm.user .cbbl{background:rgba(212,175,55,0.2);border:1px solid rgba(212,175,55,0.35);border-radius:12px 4px 12px 12px;padding:7px 10px;font-size:12px;color:#fff;max-width:90%;}
 .typing{display:flex;gap:4px;padding:3px 0;}
 .typing span{width:5px;height:5px;background:#c4b5e8;border-radius:50%;animation:tp 1.2s infinite;}
-.typing span:nth-child(2){animation-delay:0.2s;}
-.typing span:nth-child(3){animation-delay:0.4s;}
+.typing span:nth-child(2){animation-delay:0.2s;} .typing span:nth-child(3){animation-delay:0.4s;}
 @keyframes tp{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
 .qr{display:flex;gap:4px;flex-wrap:wrap;}
 .qb{background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:4px 9px;font-size:10px;color:#ffd700;cursor:pointer;white-space:nowrap;font-weight:bold;}
-.qb:active{background:rgba(212,175,55,0.25);}
 .inp-row{display:flex;gap:6px;}
 .inp-row input{flex:1;background:rgba(30,15,60,0.9);border:1.5px solid rgba(212,175,55,0.3);border-radius:16px;padding:8px 12px;color:#fff;font-size:12px;outline:none;}
 .inp-row input::placeholder{color:#9b8bbf;}
-.inp-row input:focus{border-color:#d4af37;}
-.send-b{width:34px;height:34px;background:linear-gradient(135deg,#d4af37,#8a5e1a);border:none;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(212,175,55,0.4);}
+.send-b{width:34px;height:34px;background:linear-gradient(135deg,#d4af37,#8a5e1a);border:none;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 
-/* ===== 底部導航 ===== */
-.bnav{height:58px;background:linear-gradient(180deg,rgba(15,8,40,0.98),rgba(10,5,30,0.99));border-top:1.5px solid rgba(212,175,55,0.3);display:flex;align-items:stretch;flex-shrink:0;z-index:20;box-shadow:0 -2px 10px rgba(0,0,0,0.4);}
+/* 底部 */
+.bnav{height:58px;background:linear-gradient(180deg,rgba(15,8,40,0.98),rgba(10,5,30,0.99));border-top:1.5px solid rgba(212,175,55,0.3);display:flex;align-items:stretch;flex-shrink:0;z-index:20;}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:2px;position:relative;}
 .nb.on::before{content:'';position:absolute;top:0;left:15%;right:15%;height:2.5px;background:linear-gradient(90deg,transparent,#ffd700,transparent);border-radius:2px;}
-.nb .ni{font-size:19px;}
-.nb .nl{font-size:8px;color:#9b8bbf;font-weight:bold;}
-.nb.on .nl{color:#ffd700;}
+.nb .ni{font-size:19px;} .nb .nl{font-size:8px;color:#9b8bbf;font-weight:bold;} .nb.on .nl{color:#ffd700;}
 
-/* ===== 彈窗 ===== */
+/* 彈窗 */
 .gm{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:none;align-items:center;justify-content:center;}
 .gm.show{display:flex;}
 .gm-box{background:linear-gradient(135deg,#2d1b69,#1e1040);border:2px solid rgba(212,175,55,0.5);border-radius:18px;padding:22px;width:270px;text-align:center;animation:mIn 0.3s cubic-bezier(0.4,0,0.2,1);box-shadow:0 20px 60px rgba(0,0,0,0.6);}
@@ -318,13 +268,12 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
 .gm-box h3{font-size:15px;color:#ffd700;margin-bottom:6px;font-weight:bold;}
 .gm-box .rwd{font-size:42px;margin:8px 0;}
 .gm-box p{font-size:12px;color:#e2d5ff;line-height:1.8;margin-bottom:14px;}
-.gm-close{background:linear-gradient(135deg,#d4af37,#8a5e1a);border:none;border-radius:12px;padding:8px 22px;color:#1a0d3a;font-size:13px;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(212,175,55,0.4);}
+.gm-close{background:linear-gradient(135deg,#d4af37,#8a5e1a);border:none;border-radius:12px;padding:8px 22px;color:#1a0d3a;font-size:13px;font-weight:bold;cursor:pointer;}
 </style>
 </head>
 <body>
 
 <div id="auth-screen">
-  <div class="auth-bg-stars"></div>
   <div class="auth-logo">✨ 古錐星命閣 ✨</div>
   <div class="auth-sub">五大神明為您指引命途</div>
   <img src="character.png" class="auth-char" alt="九天玄女">
@@ -339,7 +288,7 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
       <button class="auth-btn" onclick="doLogin()">🔮 登入古錐星命閣</button>
     </div>
     <div id="reg-form" class="auth-form" style="display:none;">
-      <input class="ai" type="text" id="reg-nick" placeholder="👤 暱稱（如：小明）">
+      <input class="ai" type="text" id="reg-nick" placeholder="👤 暱稱">
       <input class="ai" type="email" id="reg-email" placeholder="📧 電子郵件">
       <input class="ai" type="password" id="reg-pw" placeholder="🔒 密碼（至少6位）">
       <button class="auth-btn" onclick="doRegister()">✨ 加入古錐星命閣</button>
@@ -372,8 +321,8 @@ body{background:#1e1040;color:#fff;font-family:'Microsoft JhengHei',sans-serif;}
     <div class="hud-g" id="hud-gems">💎100</div>
   </div>
   <div class="hud-bs">
-    <div class="hud-b" onclick="navTo('shop',null)" title="商城">🏪</div>
-    <div class="hud-b" onclick="doLogout()" title="登出">🚪</div>
+    <div class="hud-b" onclick="navTo('shop',null)">🏪</div>
+    <div class="hud-b" onclick="doLogout()">🚪</div>
   </div>
 </div>
 
@@ -562,7 +511,7 @@ const YI=['運動','學習','表達','簽約','社交','出行','投資','購物
 const JI=['衝動','熬夜','爭執','借貸','冒險','懶惰','暴飲暴食','消極'];
 const MSGS=['相信自己的直覺，好運正在路上 ✨','今日星象對你有利，把握機會 🌟','靜下心來，聆聽內心的聲音 🔮','今日貴人運旺，多與人交流 💫'];
 const QIANS=[{type:'上上籤',cls:'qt-s',poem:'花開富貴春意濃，吉星高照萬事通',exp:'此籤大吉，諸事順遂，把握良機！'},{type:'上上籤',cls:'qt-s',poem:'雲開霧散見晴天，好運連連福自來',exp:'此籤極佳，近期有意外驚喜！'},{type:'中籤',cls:'qt-m',poem:'平步青雲志氣揚，守正待時運自來',exp:'此籤平穩，守住本分，穩中求進！'},{type:'中籤',cls:'qt-m',poem:'水到渠成自有時，耐心等待是良機',exp:'此籤中平，耐心等待，時機成熟好轉！'},{type:'下籤',cls:'qt-x',poem:'烏雲遮月總有時，撥雲見日在眼前',exp:'此籤稍差，近期謹慎，困難後有光明！'}];
-const TAROT=[{name:'愚者',emoji:'🤹',m:'新開始、冒險、自由、天真',r:'魯莽、輕率、不顧後果'},{name:'魔術師',emoji:'🎩',m:'意志力、技能、主動、創造力',r:'欺騙、缺乏決心'},{name:'女祭司',emoji:'🌙',m:'直覺、神秘、內在智慧、靜默',r:'隱藏秘密、內心混亂'},{name:'女皇',emoji:'👸',m:'豐饒、母性、自然、創造力',r:'依賴、停滯、缺乏創造力'},{name:'皇帝',emoji:'👑',m:'權威、穩定、領導、秩序',r:'控制欲、固執、缺乏彈性'},{name:'教皇',emoji:'⛪',m:'傳統、精神指引、信仰、道德',r:'過度傳統、被束縛'},{name:'戀人',emoji:'💑',m:'愛情、選擇、和諧、關係',r:'猶豫不決、感情問題'},{name:'戰車',emoji:'🏆',m:'勝利、意志力、控制、進步',r:'失控、失敗、缺乏方向'},{name:'力量',emoji:'🦁',m:'勇氣、耐心、內在力量、慈悲',r:'懷疑自我、缺乏信心'},{name:'隱者',emoji:'🕯️',m:'內省、尋求真理、孤獨、引導',r:'孤立、拒絕幫助'},{name:'命運之輪',emoji:'🎡',m:'命運、轉機、循環、好運',r:'厄運、抗拒改變'},{name:'正義',emoji:'⚖️',m:'公正、平衡、真相、因果',r:'不公正、偏見'},{name:'倒吊人',emoji:'🙃',m:'暫停、犧牲、新視角、等待',r:'拖延、固執己見'},{name:'死神',emoji:'🌑',m:'轉變、結束、蛻變、新生',r:'抗拒改變、停滯不前'},{name:'節制',emoji:'🌊',m:'平衡、耐心、調和、中庸',r:'失衡、過度、缺乏耐心'},{name:'惡魔',emoji:'⛓️',m:'束縛、物慾、執著、陰暗面',r:'解脫、釋放、重獲自由'},{name:'塔',emoji:'⚡',m:'突變、混亂、突破、覺醒',r:'避免災難、延遲變化'},{name:'星星',emoji:'⭐',m:'希望、靈感、平靜、療癒',r:'失望、缺乏信念'},{name:'月亮',emoji:'🌕',m:'幻覺、直覺、恐懼、無意識',r:'混亂消散、恐懼消除'},{name:'太陽',emoji:'☀️',m:'成功、喜悅、活力、樂觀',r:'過度樂觀、自大'},{name:'審判',emoji:'📯',m:'覺醒、重生、呼召、評估',r:'自我懷疑、逃避責任'},{name:'世界',emoji:'🌍',m:'完成、整合、成就、圓滿',r:'尚未完成、延遲'}];
+const TAROT=[{name:'愚者',emoji:'🤹',m:'新開始、冒險、自由、天真',r:'魯莽、輕率、不顧後果'},{name:'魔術師',emoji:'🎩',m:'意志力、技能、主動、創造力',r:'欺騙、缺乏決心'},{name:'女祭司',emoji:'🌙',m:'直覺、神秘、內在智慧、靜默',r:'隱藏秘密、內心混亂'},{name:'女皇',emoji:'👸',m:'豐饒、母性、自然、創造力',r:'依賴、停滯'},{name:'皇帝',emoji:'👑',m:'權威、穩定、領導、秩序',r:'控制欲、固執'},{name:'教皇',emoji:'⛪',m:'傳統、精神指引、信仰、道德',r:'過度傳統、被束縛'},{name:'戀人',emoji:'💑',m:'愛情、選擇、和諧、關係',r:'猶豫不決、感情問題'},{name:'戰車',emoji:'🏆',m:'勝利、意志力、控制、進步',r:'失控、失敗'},{name:'力量',emoji:'🦁',m:'勇氣、耐心、內在力量、慈悲',r:'懷疑自我、缺乏信心'},{name:'隱者',emoji:'🕯️',m:'內省、尋求真理、孤獨、引導',r:'孤立、拒絕幫助'},{name:'命運之輪',emoji:'🎡',m:'命運、轉機、循環、好運',r:'厄運、抗拒改變'},{name:'正義',emoji:'⚖️',m:'公正、平衡、真相、因果',r:'不公正、偏見'},{name:'倒吊人',emoji:'🙃',m:'暫停、犧牲、新視角、等待',r:'拖延、固執己見'},{name:'死神',emoji:'🌑',m:'轉變、結束、蛻變、新生',r:'抗拒改變、停滯'},{name:'節制',emoji:'🌊',m:'平衡、耐心、調和、中庸',r:'失衡、過度'},{name:'惡魔',emoji:'⛓️',m:'束縛、物慾、執著、陰暗面',r:'解脫、釋放'},{name:'塔',emoji:'⚡',m:'突變、混亂、突破、覺醒',r:'避免災難'},{name:'星星',emoji:'⭐',m:'希望、靈感、平靜、療癒',r:'失望、缺乏信念'},{name:'月亮',emoji:'🌕',m:'幻覺、直覺、恐懼、無意識',r:'混亂消散'},{name:'太陽',emoji:'☀️',m:'成功、喜悅、活力、樂觀',r:'過度樂觀'},{name:'審判',emoji:'📯',m:'覺醒、重生、呼召、評估',r:'自我懷疑'},{name:'世界',emoji:'🌍',m:'完成、整合、成就、圓滿',r:'尚未完成'}];
 const CHARS=[
   {id:'jxtianv',name:'九天玄女',role:'命理主持',img:'character.png',unlockLv:1,menus:[{key:'zodiac',label:'今日運勢',desc:'每日運勢',cost:5,step:'pick'},{key:'week',label:'本週運勢',desc:'七日分析',cost:5,step:'pick'},{key:'lucky',label:'幸運指引',desc:'幸運建議',cost:5,step:'pick'},{key:'qian',label:'每日一籤',desc:'籤詩解析',cost:5,step:'qian'},{key:'tarot',label:'塔羅占卜',desc:'牌卡指引',cost:5,step:'tarot'}],sp:`你是「古錐星命閣」的主持神明「九天玄女」。說話：親切溫暖神秘，自稱「九天玄女」，稱「親愛的有緣人」，加入✨🌙🔮⭐💫，開頭引詩句，結尾給祝福。輸出：全程繁體中文，語句清晰，分段說明。`},
   {id:'taishang',name:'太上老君',role:'星座解析',img:'taishang.png',unlockLv:5,menus:[{key:'zodiac12',label:'十二星座',desc:'深度解析',cost:5,step:'pick'},{key:'ziwei',label:'紫微斗數',desc:'命盤分析',cost:10,step:'birthday'},{key:'crystal',label:'水晶球',desc:'神秘問答',cost:5,step:'crystal'},{key:'tarot',label:'塔羅占卜',desc:'牌卡指引',cost:5,step:'tarot'}],sp:`你是「古錐星命閣」的星座解析神明「太上老君」。說話：理性深沉，自稱「老君」，稱「道友」，引用道家哲理，加入☯️🌌⭐🌿。輸出：全程繁體中文，條理清晰，分點說明。`},
@@ -595,7 +544,7 @@ function renderUL(){
 
 function switchChar(id){
   const c=CHARS.find(ch=>ch.id===id);if(!c)return;
-  if(!isUnlocked(c)){showGM(`🔒 尚未解鎖`,'🔒',`「${c.name}」需要達到 Lv.${c.unlockLv} 才能解鎖！<br>目前等級：Lv.${getUserLv()}<br>還需要 ${c.unlockLv-getUserLv()} 級<br><br>每日簽到和使用功能可獲得經驗值！`);return;}
+  if(!isUnlocked(c)){showGM(`🔒 尚未解鎖`,'🔒',`「${c.name}」需要達到 Lv.${c.unlockLv} 才能解鎖！<br>目前等級：Lv.${getUserLv()}<br>還需要 ${c.unlockLv-getUserLv()} 級`);return;}
   curChar=c;initCS();renderLM();updateBanner();activateMenu(c.menus[0]);
 }
 
@@ -603,7 +552,11 @@ function renderLM(){
   document.getElementById('left-panel').innerHTML=`<div class="lm-hd">${curChar.name}</div>`+curChar.menus.map(m=>`<div class="lm-item ${m.key===curMenuKey?'on':''}" onclick="menuClick('${m.key}')"><h3>${m.label}</h3><p>${m.desc}</p><div class="lm-cost">⚡-${m.cost}</div></div>`).join('');
 }
 
-function updateBanner(){document.getElementById('pg-char-img').src=curChar.img;document.getElementById('tc-img').src=curChar.img;document.getElementById('tc-name').textContent=curChar.name+'的話';}
+function updateBanner(){
+  document.getElementById('pg-char-img').src=curChar.img;
+  document.getElementById('tc-img').src=curChar.img;
+  document.getElementById('tc-name').textContent=curChar.name+'的話';
+}
 
 function menuClick(key){const m=curChar.menus.find(m=>m.key===key);if(!m)return;curMenuKey=key;renderLM();activateMenu(m);}
 
@@ -611,7 +564,12 @@ function activateMenu(menu){
   document.getElementById('banner-title').textContent=menu.label;
   document.getElementById('banner-sub').textContent=`⚡-${menu.cost}體力`;
   curMenuKey=menu.key;
-  if(menu.step==='pick'){selZ='';renderZP();showStep('pick');}
+  if(menu.step==='pick'){
+    selZ='';
+    showStep('pick');
+    // 強制重新渲染星座
+    requestAnimationFrame(()=>{renderZP();});
+  }
   else if(menu.step==='tarot'){showStep('tarot');resetTarot();}
   else if(menu.step==='match'){showStep('match');initMS();document.getElementById('match-result').style.display='none';document.getElementById('match-chat-sec').style.display='none';}
   else if(menu.step==='qian'){showStep('qian');document.getElementById('qian-result').style.display='none';document.getElementById('qian-chat-sec').style.display='none';}
@@ -621,13 +579,15 @@ function activateMenu(menu){
 }
 
 function renderZP(){
-  const el=document.getElementById('zodiac-picker');if(!el)return;
+  const el=document.getElementById('zodiac-picker');
+  if(!el)return;
   el.innerHTML=ZS.map(z=>`<div class="zp-item ${selZ===z.n+'座'?'on':''}" onclick="pickZ('${z.n}座','${z.s}','${z.d}')"><div class="zp-s">${z.s}</div><div class="zp-n">${z.n}</div><div class="zp-d">${z.d}</div><div class="zp-dot"></div></div>`).join('');
 }
 
 function initMS(){
   const opts='<option value="">請選擇</option>'+ZS.map(z=>`<option value="${z.n}座">${z.s} ${z.n}座</option>`).join('');
-  document.getElementById('mz1').innerHTML=opts;document.getElementById('mz2').innerHTML=opts;
+  document.getElementById('mz1').innerHTML=opts;
+  document.getElementById('mz2').innerHTML=opts;
 }
 
 function setStars(id,n){
@@ -677,7 +637,7 @@ async function drawTarot(){
   btn.textContent='🔄 重新抽牌';btn.disabled=false;btn.onclick=()=>resetTarot();
   document.getElementById('tarot-chat-sec').style.display='block';
   const cardDesc=drawnCards.map((c,i)=>`${pos[i]?`【${pos[i]}】`:''}「${c.name}」${c.reversed?'逆位（'+c.r+'）':'正位（'+c.m+'）'}`).join('、');
-  await qSendTo('tarot-chat',`請以${curChar.name}的風格解析以下塔羅牌：${cardDesc}。分段說明每張牌的含義和指引，語言清楚易懂`);
+  await qSendTo('tarot-chat',`請以${curChar.name}的風格解析塔羅牌：${cardDesc}，分段說明每張牌的含義和指引`);
 }
 
 async function pickZ(name,sym,date){
@@ -784,8 +744,7 @@ async function doBirthday(){
 function doCrystalBall(){document.getElementById('crystal-ball').classList.add('glowing');setTimeout(()=>document.getElementById('crystal-ball').classList.remove('glowing'),900);}
 
 async function doCrystal(){
-  const q=document.getElementById('crystal-q').value.trim();
-  if(!q){showGM('提示','🔮','請先輸入您想問的問題喔！');return;}
+  const q=document.getElementById('crystal-q').value.trim();if(!q){showGM('提示','🔮','請先輸入您想問的問題喔！');return;}
   const ok=await window.useEnergy(5,'水晶球問事');if(!ok)return;
   doCrystalBall();const isYes=Math.random()>0.4;
   document.getElementById('ca-main').textContent=isYes?'是 ✅':'否 ❌';document.getElementById('ca-main').className='ca-main '+(isYes?'ca-yes':'ca-no');document.getElementById('ca-detail').textContent=isYes?'水晶球發出金色光芒！':'水晶球出現紅色光芒！';
@@ -794,8 +753,7 @@ async function doCrystal(){
 }
 
 async function doName(){
-  const name=document.getElementById('name-inp').value.trim();
-  if(!name){showGM('提示','📝','請輸入您的姓名喔！');return;}
+  const name=document.getElementById('name-inp').value.trim();if(!name){showGM('提示','📝','請輸入您的姓名喔！');return;}
   const ok=await window.useEnergy(5,'姓名分析');if(!ok)return;
   document.getElementById('name-chat-sec').style.display='block';document.getElementById('name-chat').innerHTML='';selZ='';
   await qSendTo('name-chat',`請分析姓名「${name}」的五行屬性、命格特質、個性特點、事業財運和感情運勢，分點說明，清楚易懂`);
@@ -808,8 +766,12 @@ document.getElementById('crystal-q').addEventListener('keypress',e=>{if(e.key===
 document.getElementById('name-inp').addEventListener('keypress',e=>{if(e.key==='Enter')doName();});
 document.getElementById('login-pw').addEventListener('keypress',e=>{if(e.key==='Enter')window.doLogin();});
 
-initCS();renderLM();updateBanner();
-setTimeout(()=>{activateMenu(CHARS[0].menus[0]);renderZP();},300);
+// 初始化
+initCS();
+renderLM();
+updateBanner();
+showStep('pick');
+renderZP();
 </script>
 </body>
 </html>
